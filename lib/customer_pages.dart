@@ -32,39 +32,6 @@ class _ReceiptsState extends State<Receipts> {
 
 }
 
-class ReceiptDisplay extends StatefulWidget {
-  @override
-  _ReceiptDisplay createState() => _ReceiptDisplay();
-}
-
-class _ReceiptDisplay extends State<ReceiptDisplay> {
-  _ReceiptDisplay({this.hash});
-
-  final String hash;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      child: CustomScrollView(
-        slivers: [
-          SliverNavigationBar("Receipts"),
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: Container(),
-          ),
-        ],
-      ),
-    );
-  }
-
-}
-
-
 class Businesses extends StatefulWidget {
   @override
   _BusinessesState createState() => _BusinessesState();

@@ -249,7 +249,7 @@ class CustomerOnboarding extends StatelessWidget {
     );
   }
 
-  Future<http.Response> _createUser() async{
+  Future<http.Response> _createUser() async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('name', nameController.text);
 
@@ -359,7 +359,7 @@ class BusinessOnboarding extends StatelessWidget {
     );
   }
 
-  Future<http.Response> _createBusiness() async{
+  Future<http.Response> _createBusiness() async {
     var url = Uri.parse('https://qrcoder-server.herokuapp.com/createNewBusiness');
     return await http.post(
         url,
