@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
+const String baseURL = "https://qrcoder-server.herokuapp.com/";
+
 const double edge_padding = 15;
 const double card_spacing = 15;
 const double horizontal_margin = 14;
