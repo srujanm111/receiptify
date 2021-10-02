@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:receiptify/constants.dart';
 import 'package:receiptify/widgets.dart';
+import 'package:http/http.dart' as http;
 
 class Receipts extends StatefulWidget {
   @override
@@ -11,6 +13,38 @@ class Receipts extends StatefulWidget {
 }
 
 class _ReceiptsState extends State<Receipts> {
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoPageScaffold(
+      child: CustomScrollView(
+        slivers: [
+          SliverNavigationBar("Receipts"),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Container(),
+          ),
+        ],
+      ),
+    );
+  }
+
+}
+
+class ReceiptDisplay extends StatefulWidget {
+  @override
+  _ReceiptDisplay createState() => _ReceiptDisplay();
+}
+
+class _ReceiptDisplay extends State<ReceiptDisplay> {
+  _ReceiptDisplay({this.hash});
+
+  final String hash;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,6 +171,8 @@ class _ScanReceipt extends State<ScanReceipt> {
       setState(() {
         result = scanData;
         controller.stopCamera();
+        Future.delayed(Duration.zero, () =>
+            _queryServer(result.code).then((response) => _parseData(response)));
       });
     });
   }
@@ -145,6 +181,26 @@ class _ScanReceipt extends State<ScanReceipt> {
   void dispose() {
     controller.dispose();
     super.dispose();
+  }
+
+  Future<http.Response> _queryServer(String hash) async {
+    var url = Uri.parse('https://qrcoder-server.herokuapp.com/retrieveHash');
+    return await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String> {
+          'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
+          'hashCode': hash
+        })
+    );
+  }
+
+  Map<String, String> _parseData(response) {
+    var data = jsonDecode(response);
+    print('Data JSON: {$data}');
+    return data['data'];
   }
 
 }
