@@ -8,6 +8,7 @@ const double item_spacing = 16;
 const double selector_height = 60;
 
 const Color green = Color.fromRGBO(0, 223, 100, 1);
+const Color red = Color(0xFFFC5B5B);
 const Color title = Color(0xFF545454);
 const Color subtitle = Color(0xFF787878);
 const Color background = Color(0xFFF7F7F7);

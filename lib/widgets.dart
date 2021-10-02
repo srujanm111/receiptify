@@ -1,6 +1,28 @@
 import 'package:flutter/cupertino.dart';
+import 'package:receiptify/constants.dart';
 
-import 'constants.dart';
+class ReceiptifyTitle extends StatelessWidget {
+
+  final bool inverted;
+
+  ReceiptifyTitle({this.inverted = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 300,
+      child: FittedBox(
+        fit: BoxFit.contain,
+        child: Text(
+          "Receiptify",
+          style: TextStyle(
+            color: inverted ? white : green,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class LargeButton extends StatelessWidget {
 
@@ -131,4 +153,96 @@ class ArrowButton extends StatelessWidget {
       ),
     );
   }
+}
+
+class TextFieldController extends TextEditingController {
+
+  _LargeTextFieldState _state;
+
+  TextFieldController({String text}) : super(text: text);
+
+  void attachState(_LargeTextFieldState state) => _state = state;
+
+  void showError(String message) => _state.showError(message);
+
+  void clearError() => _state.clearError();
+
+}
+
+class LargeTextField extends StatefulWidget {
+
+  final TextFieldController controller;
+  final String placeholder;
+
+  LargeTextField({this.controller, this.placeholder});
+
+  @override
+  _LargeTextFieldState createState() => _LargeTextFieldState();
+}
+
+class _LargeTextFieldState extends State<LargeTextField> {
+
+  var isError = false;
+  var errorMessage = "";
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.attachState(this);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CupertinoTextField(
+          cursorColor: CupertinoTheme.of(context).primaryColor,
+          controller: widget.controller,
+          style: TextStyle(
+            color: title,
+            fontSize: 20,
+          ),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: isError ? red : subtitle,
+              width: 2,
+            ),
+            borderRadius: BorderRadius.circular(11),
+          ),
+          padding: EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+          placeholder: widget.placeholder,
+          placeholderStyle: TextStyle(
+            color: subtitle,
+            fontSize: 20,
+          ),
+        ),
+        isError ? Padding(
+          padding: EdgeInsets.only(left: 16, top: 2),
+          child: Text(
+            errorMessage,
+            style: TextStyle(
+              fontSize: 16,
+              color: red,
+            ),
+          ),
+        ) : Container(),
+      ],
+    );
+  }
+
+  void showError(String message) {
+    setState(() {
+      isError = true;
+      errorMessage = message;
+    });
+  }
+
+  void clearError() {
+    setState(() {
+      isError = false;
+      errorMessage = "";
+    });
+  }
+
 }

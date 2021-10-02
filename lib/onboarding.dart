@@ -1,7 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:receiptify/constants.dart';
+import 'package:receiptify/functions.dart';
 import 'package:receiptify/widgets.dart';
-import 'constants.dart';
 
 class Welcome extends StatefulWidget {
   @override
@@ -94,9 +95,9 @@ class _WelcomeState extends State<Welcome> with SingleTickerProviderStateMixin {
                 _welcomeMessage(context),
                 SizedBox(height: 30),
                 Spacer(flex: 5,),
-                _button("Customer"),
+                _button("Customer", () => push(CustomerOnboarding(), context, fade: true)),
                 SizedBox(height: 15),
-                _button("Business"),
+                _button("Business", () => push(BusinessOnboarding(), context, fade: true)),
               ],
             ),
           ),
@@ -113,10 +114,10 @@ class _WelcomeState extends State<Welcome> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _button(String text) {
+  Widget _button(String text, VoidCallback onPress) {
     return FadeTransition(
       opacity: _buttonAnimation,
-      child: LargeButton(title: text, onPress: () {}, inverted: true,),
+      child: LargeButton(title: text, onPress: onPress, inverted: true,),
     );
   }
 
@@ -160,25 +161,164 @@ class _WelcomeState extends State<Welcome> with SingleTickerProviderStateMixin {
 
 }
 
-class ReceiptifyTitle extends StatelessWidget {
+class Header extends StatelessWidget {
 
-  final bool inverted;
+  final String subTitle;
 
-  ReceiptifyTitle({this.inverted = false});
+  Header(this.subTitle);
 
   @override
   Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ReceiptifyTitle(),
+        _message(context)
+      ],
+    );
+  }
+
+  Widget _message(BuildContext context) {
     return Container(
-      width: 300,
+      padding: EdgeInsets.only(left: 4),
       child: FittedBox(
         fit: BoxFit.contain,
         child: Text(
-          "Receiptify",
-          style: TextStyle(
-            color: inverted ? white : green,
-          ),
+          subTitle,
+          style: TextStyle(color: title, fontSize: 28, height: 0.95),
         ),
       ),
     );
   }
+}
+
+class CustomerOnboarding extends StatelessWidget {
+
+  final nameController = TextFieldController();
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoPageScaffold(
+      backgroundColor: canvas,
+      navigationBar: CupertinoNavigationBar(
+        backgroundColor: Colors.transparent,
+        border: null,
+        automaticallyImplyLeading: false,
+        leading: ArrowButton(
+          direction: ArrowDirection.left,
+          onPress: () => Navigator.of(context).pop(),
+          color: subtitle,
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 25,
+          right: 25,
+          top: 70 + MediaQuery.of(context).padding.top,
+          bottom: 25 + MediaQuery.of(context).padding.bottom + 15,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Header("Say bye to all those\npaper receipts!"),
+            SizedBox(height: 50,),
+            _nameField(),
+            Spacer(),
+            LargeButton(title: "Continue", onPress: () {}),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _nameField() {
+    return LargeTextField(
+      controller: nameController,
+      placeholder: "Name",
+    );
+  }
+
+}
+
+
+class BusinessOnboarding extends StatelessWidget {
+
+  final nameController = TextFieldController();
+  final streetController = TextFieldController();
+  final cityStateController = TextFieldController();
+  final zipController = TextFieldController();
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoPageScaffold(
+      backgroundColor: canvas,
+      navigationBar: CupertinoNavigationBar(
+        backgroundColor: Colors.transparent,
+        border: null,
+        automaticallyImplyLeading: false,
+        leading: ArrowButton(
+          direction: ArrowDirection.left,
+          onPress: () => Navigator.of(context).pop(),
+          color: subtitle,
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 25,
+          right: 25,
+          top: 70 + MediaQuery.of(context).padding.top,
+          bottom: 25 + MediaQuery.of(context).padding.bottom + 15,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Header("Connect with your customers,\nthrough receipts!"),
+            SizedBox(height: 50,),
+            _nameField(),
+            SizedBox(height: 20,),
+            _streetField(),
+            SizedBox(height: 20,),
+            _cityStateField(),
+            SizedBox(height: 20,),
+            _zipField(),
+            Spacer(),
+            LargeButton(title: "Continue", onPress: () {}),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _nameField() {
+    return LargeTextField(
+      controller: nameController,
+      placeholder: "Name",
+    );
+  }
+
+  Widget _streetField() {
+    return LargeTextField(
+      controller: streetController,
+      placeholder: "Street",
+    );
+  }
+
+  Widget _cityStateField() {
+    return LargeTextField(
+      controller: cityStateController,
+      placeholder: "City, State",
+    );
+  }
+
+  Widget _zipField() {
+    return LargeTextField(
+      controller: zipController,
+      placeholder: "Zip",
+    );
+  }
+
 }
