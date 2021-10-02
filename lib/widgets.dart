@@ -246,3 +246,117 @@ class _LargeTextFieldState extends State<LargeTextField> {
   }
 
 }
+
+class SliverNavigationBar extends StatelessWidget {
+
+  final String title;
+
+  SliverNavigationBar(this.title);
+
+  @override
+  Widget build(BuildContext context) {
+    double min = 44 + MediaQuery.of(context).padding.top;
+    return SliverPersistentHeader(
+      delegate: SliverNavigationBarHeader(min, min + 52, title),
+      pinned: true,
+    );
+  }
+}
+
+class SliverNavigationBarHeader extends SliverPersistentHeaderDelegate {
+
+  final String title;
+  final double _minExtent;
+  final double _maxExtent;
+
+  SliverNavigationBarHeader(this._minExtent, this._maxExtent, this.title);
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: CupertinoTheme.of(context).primaryColor,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: _expanded(context),
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: _collapsed(context, shrinkOffset),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _expanded(BuildContext context) {
+    return Align(
+      alignment: Alignment.bottomLeft,
+      child: Padding(
+        padding: EdgeInsets.only(left: 16, bottom: 8, right: 16),
+        child: Text(title, style: TextStyle(fontSize: 40),),
+      ),
+    );
+  }
+
+  Widget _collapsed(BuildContext context, double shrinkOffset) {
+    return CupertinoNavigationBar(
+      middle: AnimatedOpacity(
+        opacity: shrinkOffset >= _maxExtent - _minExtent - 10 ? 1 : 0,
+        duration: Duration(milliseconds: 100),
+        child: Text(title),
+      ),
+      backgroundColor: CupertinoTheme.of(context).primaryColor,
+      border: null,
+      brightness: Brightness.dark,
+    );
+  }
+
+  @override
+  double get maxExtent => _maxExtent;
+
+  @override
+  double get minExtent => _minExtent;
+
+  @override
+  bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) {
+    return true;
+  }
+
+}
+
+class RoundCard extends StatelessWidget {
+
+  final double height;
+  final double width;
+  final Widget child;
+  final double radius;
+
+  RoundCard({this.height, this.width, this.child, this.radius = 18});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: height,
+      width: width,
+      child: child,
+      decoration: BoxDecoration(
+          color: canvas,
+          borderRadius: BorderRadius.circular(radius),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0xFF000000).withOpacity(0.07),
+              offset: Offset(0, 2),
+              blurRadius: 4,
+            ),
+          ]
+      ),
+    );
+  }
+}

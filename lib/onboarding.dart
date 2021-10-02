@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:receiptify/base_layout.dart';
 import 'package:receiptify/constants.dart';
 import 'package:receiptify/functions.dart';
 import 'package:receiptify/widgets.dart';
@@ -226,7 +227,7 @@ class CustomerOnboarding extends StatelessWidget {
             SizedBox(height: 50,),
             _nameField(),
             Spacer(),
-            LargeButton(title: "Continue", onPress: () {}),
+            LargeButton(title: "Continue", onPress: () => push(BaseLayout(true), context, fade: true)),
           ],
         ),
       ),
@@ -286,7 +287,7 @@ class BusinessOnboarding extends StatelessWidget {
             SizedBox(height: 20,),
             _zipField(),
             Spacer(),
-            LargeButton(title: "Continue", onPress: () {}),
+            LargeButton(title: "Continue", onPress: () => push(BaseLayout(true), context, fade: true)),
           ],
         ),
       ),
