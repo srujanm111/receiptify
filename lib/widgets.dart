@@ -360,3 +360,274 @@ class RoundCard extends StatelessWidget {
     );
   }
 }
+
+class TabbedNavigationBar extends StatelessWidget {
+
+  final String title;
+  final Widget pinnedSelector;
+
+  TabbedNavigationBar(this.title, this.pinnedSelector);
+
+  @override
+  Widget build(BuildContext context) {
+    final min = 44 + MediaQuery.of(context).padding.top + selector_height;
+    return SliverPersistentHeader(
+      delegate: TabbedNavigationBarHeader(title, min, min + 52, pinnedSelector),
+      pinned: true,
+    );
+  }
+}
+
+class TabbedNavigationBarHeader extends SliverPersistentHeaderDelegate {
+
+  final String title;
+  final Widget pinnedSelector;
+  final double _minExtent;
+  final double _maxExtent;
+
+  TabbedNavigationBarHeader(this.title, this._minExtent, this._maxExtent, this.pinnedSelector);
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: CupertinoTheme.of(context).primaryColor,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Column(
+              children: [
+                _expanded(context),
+                pinnedSelector,
+              ],
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: _collapsed(context, shrinkOffset),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _expanded(BuildContext context) {
+    return Align(
+      alignment: Alignment.bottomLeft,
+      child: Padding(
+        padding: EdgeInsets.only(left: 16, bottom: 8, right: 16),
+        child: Text(title, style: TextStyle(fontSize: 40),),
+      ),
+    );
+  }
+
+  Widget _collapsed(BuildContext context, double shrinkOffset) {
+    return CupertinoNavigationBar(
+      middle: AnimatedOpacity(
+        opacity: shrinkOffset >= _maxExtent - _minExtent - 10 ? 1 : 0,
+        duration: Duration(milliseconds: 100),
+        child: Text(title),
+      ),
+      backgroundColor: CupertinoTheme.of(context).primaryColor,
+      border: null,
+      brightness: Brightness.dark,
+    );
+  }
+
+  @override
+  double get maxExtent => _maxExtent;
+
+  @override
+  double get minExtent => _minExtent;
+
+  @override
+  bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) {
+    return true;
+  }
+
+}
+
+class PinnedSelector extends StatelessWidget {
+
+  final List<SelectorItem> items;
+  final int initialIndex;
+
+  PinnedSelector({this.items, this.initialIndex = 0});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: selector_height,
+      color: CupertinoTheme.of(context).primaryColor,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Padding(
+          padding: EdgeInsets.only(top: 5),
+          child: Container(
+            width: MediaQuery.of(context).size.width - 32,
+            child: Selector(
+              items: items,
+              initialIndex: initialIndex,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class Selector extends StatefulWidget {
+
+  final bool locked;
+  final List<SelectorItem> items;
+  final int initialIndex;
+
+  Selector({this.items, this.initialIndex = 0, this.locked = false});
+
+  @override
+  _SelectorState createState() => _SelectorState();
+}
+
+class _SelectorState extends State<Selector> {
+
+  int selectedIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedIndex = widget.initialIndex;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 38,
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          return Container(
+            width: constraints.maxWidth,
+            decoration: BoxDecoration(
+              color: canvas,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: <Widget>[
+                _slidingTab(constraints.maxWidth),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: _createOptions(constraints.maxWidth),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  List<Widget> _createOptions(double maxWidth) {
+    List<Widget> options = [];
+    for (int i = 0; i < widget.items.length; i++) {
+      options.add(
+        GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => updateTab(i),
+          child: Container(
+            width: maxWidth / widget.items.length,
+            child: Center(
+              child: Text(
+                widget.items[i].title,
+                style: TextStyle(
+                  color: selectedIndex == i ? white : subtitle,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    return options;
+  }
+
+  void updateTab(int index) {
+    if (selectedIndex == index) return;
+    if (!widget.locked) {
+      setState(() {
+        selectedIndex = index;
+      });
+    }
+    widget.items[index].onSelected();
+  }
+
+  Widget _slidingTab(double maxWidth) {
+    return AnimatedPositioned(
+      height: 30,
+      left: maxWidth / widget.items.length * selectedIndex + 4,
+      width: maxWidth / widget.items.length - 8,
+      child: Container(
+        decoration: BoxDecoration(
+          color: CupertinoTheme.of(context).primaryColor,
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      curve: Curves.ease,
+      duration: Duration(milliseconds: 200),
+    );
+  }
+
+
+}
+
+class SelectorItem {
+
+  final String title;
+  final VoidCallback onSelected;
+
+  SelectorItem(this.title, this.onSelected);
+
+}
+
+class CustomTabBarView extends StatefulWidget {
+
+  final int initialIndex;
+  final List<Widget> tabs;
+  final bool useChildDirectly;
+
+  CustomTabBarView({this.initialIndex = 0, this.tabs, this.useChildDirectly = false, Key key}) : super(key: key);
+
+  @override
+  CustomTabBarViewState createState() => CustomTabBarViewState();
+}
+
+class CustomTabBarViewState extends State<CustomTabBarView> {
+
+  int index;
+
+  @override
+  void initState() {
+    super.initState();
+    index = widget.initialIndex;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.useChildDirectly ? widget.tabs[index] : AnimatedSwitcher(
+      duration: const Duration(milliseconds: 200),
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return FadeTransition(child: child, opacity: animation);
+      },
+      child: widget.tabs[index],
+    );
+  }
+
+  void changePage(int index) {
+    setState(() => this.index = index);
+  }
+}

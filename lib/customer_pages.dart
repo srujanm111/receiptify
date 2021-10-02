@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:receiptify/constants.dart';
 import 'package:receiptify/widgets.dart';
 
@@ -34,24 +37,69 @@ class Businesses extends StatefulWidget {
 
 class _BusinessesState extends State<Businesses> {
 
+  GlobalKey<CustomTabBarViewState> tabViewKey;
+
+  @override
+  void initState() {
+    super.initState();
+    tabViewKey = GlobalKey<CustomTabBarViewState>();
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       child: CustomScrollView(
         slivers: [
-          SliverNavigationBar("Businesses"),
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: Container(),
+          TabbedNavigationBar(
+            "Businesses",
+            PinnedSelector(
+              initialIndex: 0,
+              items: [
+                SelectorItem("Announcements", () => changePage(0)),
+                SelectorItem("Subscriptions", () => changePage(1)),
+              ],
+            ),
+          ),
+          CustomTabBarView(
+            initialIndex: 0,
+            key: tabViewKey,
+            useChildDirectly: true,
+            tabs: [
+              SliverFillRemaining(hasScrollBody: false, child: Container()),
+              SliverFillRemaining(hasScrollBody: false, child: Container()),
+            ],
           ),
         ],
       ),
     );
   }
 
+  void changePage(int page) {
+    tabViewKey.currentState.changePage(page);
+  }
+
 }
 
-class ScanReceipt extends StatelessWidget {
+class ScanReceipt extends StatefulWidget {
+
+  State<ScanReceipt> createState() => _ScanReceipt();
+}
+
+class _ScanReceipt extends State<ScanReceipt> {
+
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  Barcode result;
+  QRViewController controller;
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    if (Platform.isAndroid) {
+      controller.pauseCamera();
+    } else if (Platform.isIOS) {
+      controller.resumeCamera();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,9 +111,18 @@ class ScanReceipt extends StatelessWidget {
           SliverFillRemaining(
             hasScrollBody: false,
             child: Padding(
-              padding: EdgeInsets.all(30),
-              child: RoundCard(
-                
+              padding: EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 40),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30.0),
+                child: QRView(
+                  key: qrKey,
+                  onQRViewCreated: _onQRViewCreated,
+                  overlay: QrScannerOverlayShape(
+                    borderColor: green,
+                    borderRadius: 10,
+                    borderWidth: 10.0
+                  ),
+                ),
               ),
             ),
           ),
@@ -73,4 +130,21 @@ class ScanReceipt extends StatelessWidget {
       ),
     );
   }
+
+  void _onQRViewCreated(QRViewController controller) {
+    this.controller = controller;
+    controller.scannedDataStream.listen((scanData) {
+      setState(() {
+        result = scanData;
+        controller.stopCamera();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
 }
