@@ -7,6 +7,7 @@ import 'package:receiptify/constants.dart';
 import 'package:receiptify/functions.dart';
 import 'package:receiptify/widgets.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Welcome extends StatefulWidget {
   @override
@@ -249,6 +250,9 @@ class CustomerOnboarding extends StatelessWidget {
   }
 
   Future<http.Response> _createUser() async{
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('name', nameController.text);
+
     var url = Uri.parse('https://qrcoder-server.herokuapp.com/createNewUser');
     return await http.post(
         url,
