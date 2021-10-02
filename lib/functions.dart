@@ -25,3 +25,8 @@ Future<T> push<T>(Widget page, BuildContext context, {bool fade = false}) async 
     builder: (context) => page,
   ),);
 }
+
+Future<T> showCustomDialog<T>(BuildContext context, Widget dialog, {bool barrierDismissible = true}) {
+  barrierDismissible = true;
+  return showCupertinoDialog<T>(context: context, builder: (context) => dialog, barrierDismissible: barrierDismissible);
+}

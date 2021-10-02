@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:receiptify/data_classes.dart';
 
 const String baseURL = "https://qrcoder-server.herokuapp.com/";
 
@@ -25,3 +26,81 @@ class RightArrow {
 
   static const IconData right_arrow = IconData(0xe800, fontFamily: _kFontFam, fontPackage: _kFontPkg);
 }
+
+final mockReceipts = [
+  Receipt(
+    dateIssued: "10/01/2021",
+    businessName: "Business Name",
+    hash: '*hwqDrFv4[Fex%Q(GTm&',
+    address: Address(
+      street: "5555 XYZ Avenue",
+      city: "Dallas",
+      state: "Texas",
+      zip: "75025",
+    ),
+    phone: "469-946-2354",
+    subtotal: 40.0,
+    total: 42.89,
+    order: [
+      Product("Sample Product", 12.99, 2),
+      Product("Sample Product", 2.99, 1),
+      Product("Sample Product", 112.99, 3)
+    ],
+    coupons: [
+      Coupon(
+        details: "50% Off Next Purchase",
+        expirationDate: "10/11/2021",
+      ),
+    ],
+  ),
+  Receipt(
+    dateIssued: "10/01/2021",
+    businessName: "Business Name",
+    address: Address(
+      street: "5555 XYZ Avenue",
+      city: "Dallas",
+      state: "Texas",
+      zip: "75025",
+    ),
+    phone: "469-946-2354",
+    subtotal: 40.0,
+    total: 42.89,
+    order: [
+      Product("Sample Product", 12.99, 2),
+      Product("Sample Product", 2.99, 1),
+      Product("Sample Product", 112.99, 3)
+    ],
+    coupons: [
+      Coupon(
+        details: "50% Off Next Purchase",
+        expirationDate: "10/11/2021",
+      ),
+    ],
+      hash: '*hwqDrFv4[Fex%Q(GTm&'
+  ),
+  Receipt(
+    dateIssued: "10/01/2021",
+    businessName: "Business Name",
+    hash: '*hwqDrFv4[Fex%Q(GTm&',
+    address: Address(
+      street: "5555 XYZ Avenue",
+      city: "Dallas",
+      state: "Texas",
+      zip: "75025",
+    ),
+    phone: "469-946-2354",
+    subtotal: 40.0,
+    total: 42.89,
+    order: [
+      Product("Sample Product", 12.99, 2),
+      Product("Sample Product", 2.99, 1),
+      Product("Sample Product", 112.99, 3)
+    ],
+    coupons: [
+      Coupon(
+        details: "50% Off Next Purchase",
+        expirationDate: "10/11/2021",
+      ),
+    ],
+  ),
+];

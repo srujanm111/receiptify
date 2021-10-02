@@ -631,3 +631,69 @@ class CustomTabBarViewState extends State<CustomTabBarView> {
     setState(() => this.index = index);
   }
 }
+
+class CustomDialog extends StatelessWidget {
+
+  final Widget child;
+  final String titleText;
+  final bool large;
+  final bool closeIcon;
+  final bool promoText;
+
+  CustomDialog(this.titleText, this.child, {this.large = false, this.closeIcon = true, this.promoText = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      padding: MediaQuery.of(context).viewInsets,
+      duration: Duration(milliseconds: 200),
+      child: Padding(
+        padding: EdgeInsets.all(edge_padding * (large ? 1 : 2)),
+        child: Center(
+          child: Container(
+            decoration: BoxDecoration(
+                color: canvas,
+                borderRadius: BorderRadius.circular(20)
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(promoText ? 25 : 20),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(),
+                          Align(
+                            alignment: Alignment.center,
+                            child: _title(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: child == null ? 0 : 15),
+                    child ?? Container(),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _title(BuildContext context) {
+    return Text(
+      titleText,
+      style: TextStyle(
+        color: title,
+        fontSize: promoText ? 26 : 20,
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+
+}

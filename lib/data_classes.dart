@@ -1,5 +1,6 @@
 class Receipt {
 
+  String hash;
   String dateIssued;
   String businessName;
   Address address;
@@ -10,7 +11,7 @@ class Receipt {
   List<Coupon> coupons;
 
   Receipt({this.dateIssued, this.businessName, this.address,
-      this.phone, this.subtotal, this.total, this.order, this.coupons}) {
+      this.phone, this.subtotal, this.total, this.hash, this.order, this.coupons}) {
     order = order ?? [];
     coupons = coupons ?? [];
   }
@@ -22,6 +23,7 @@ class Receipt {
     phone = json["businessPhone"];
     subtotal = json["subtotal"];
     total = json["total"];
+    hash = json["hash"];
     order = (json["order"] as List).map<Product>((map) => Product.fromJson(map)).toList();
     coupons = (json["coupons"] as List).map<Coupon>((map) => Coupon.fromJson(map)).toList();
   }
@@ -34,6 +36,7 @@ class Receipt {
     json["businessPhone"] = phone;
     json["subtotal"] = subtotal;
     json["total"] = total;
+    json["hash"] = hash;
     json["order"] = order.map<Map<String, dynamic>>((product) => product.toJson()).toList();
     json["coupons"] = coupons.map<Map<String, dynamic>>((coupon) => coupon.toJson()).toList();
     return json;
@@ -97,7 +100,7 @@ class Coupon {
   String details;
   String expirationDate;
 
-  Coupon(this.details, this.expirationDate);
+  Coupon({this.details, this.expirationDate});
 
   Coupon.fromJson(Map<String, dynamic> json) {
     details = json["couponDetails"];
