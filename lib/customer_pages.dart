@@ -6,6 +6,7 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:receiptify/constants.dart';
 import 'package:receiptify/widgets.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Receipts extends StatefulWidget {
   @override
@@ -172,7 +173,10 @@ class _ScanReceipt extends State<ScanReceipt> {
         result = scanData;
         controller.stopCamera();
         Future.delayed(Duration.zero, () =>
-            _queryServer(result.code).then((response) => _parseData(response)));
+            _queryServer(result.code).then((response) {
+              var data = _parseData(response);
+              //send data to receipt
+            }));
       });
     });
   }
@@ -184,6 +188,9 @@ class _ScanReceipt extends State<ScanReceipt> {
   }
 
   Future<http.Response> _queryServer(String hash) async {
+    final prefs = await SharedPreferences.getInstance();
+    String name = prefs.getString('name');
+
     var url = Uri.parse('https://qrcoder-server.herokuapp.com/retrieveHash');
     return await http.post(
         url,
@@ -192,14 +199,14 @@ class _ScanReceipt extends State<ScanReceipt> {
         },
         body: jsonEncode(<String, String> {
           'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
-          'hashCode': hash
+          'hashCode': hash,
+          'name': name ?? 'ERROR'
         })
     );
   }
 
-  Map<String, String> _parseData(response) {
-    var data = jsonDecode(response);
-    print('Data JSON: {$data}');
+  dynamic _parseData(response) {
+    var data = jsonDecode(response.body);
     return data['data'];
   }
 
