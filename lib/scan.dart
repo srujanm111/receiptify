@@ -3,6 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'dart:io';
 
+//From my barebones tester project
+//Only used for reference in integrating with larger app
+//Delete from final version
+
 class CodeScanner extends StatelessWidget {
   const CodeScanner({Key key}) : super(key: key);
 
