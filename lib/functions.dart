@@ -30,3 +30,8 @@ Future<T> showCustomDialog<T>(BuildContext context, Widget dialog, {bool barrier
   barrierDismissible = true;
   return showCupertinoDialog<T>(context: context, builder: (context) => dialog, barrierDismissible: barrierDismissible);
 }
+
+String currentDateString() {
+  final now = DateTime.now();
+  return "${now.month}/0${now.day}/${now.year}";
+}

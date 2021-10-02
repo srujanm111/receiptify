@@ -11,6 +11,7 @@ class Business {
   String name;
   Address address;
   String phone;
+  List<Product> products = [];
 
   Business(this.name, this.address, this.phone);
 

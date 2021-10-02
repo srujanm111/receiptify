@@ -12,10 +12,6 @@ import 'package:http/http.dart' as http;
 
 class Receipts extends StatefulWidget {
 
-  final List<Receipt> receipts;
-
-  Receipts(this.receipts);
-
   @override
   _ReceiptsState createState() => _ReceiptsState();
 }
@@ -33,7 +29,7 @@ class _ReceiptsState extends State<Receipts> {
             child: Padding(
               padding: const EdgeInsets.all(edge_padding),
               child: Column(
-                children: verticalSpace(card_spacing, widget.receipts.map((r) => _receiptCard(r)).toList()),
+                children: verticalSpace(card_spacing, mockReceipts.map((r) => _receiptCard(r)).toList()),
               ),
             ),
           ),
@@ -218,7 +214,7 @@ class ReceiptView extends StatelessWidget {
                           RoundButton(
                             height: 45,
                             text: "Present Receipt",
-                            onPress: () => showCustomDialog<String>(context, CustomDialog("Receipt", ShowReceipt(receipt))),
+                            onPress: () => showCustomDialog<String>(context, CustomDialog("Receipt", ShowReceipt("RECEIPT HASH"))),
                           ),
                           Padding(
                             padding: const EdgeInsets.only(right: 10),
@@ -256,7 +252,7 @@ class ReceiptView extends StatelessWidget {
                       RoundButton(
                         height: 45,
                         text: "Present Coupon",
-                        onPress: () => showCustomDialog<String>(context, CustomDialog("Coupon", ShowReceipt(receipt))),
+                        onPress: () => showCustomDialog<String>(context, CustomDialog("Coupon", ShowReceipt("RECEIPT HASH"))),
                       ),
                       Padding(
                         padding: const EdgeInsets.only(right: 10),
@@ -304,9 +300,9 @@ class ReceiptView extends StatelessWidget {
 
 class ShowReceipt extends StatelessWidget {
 
-  final Receipt receipt;
+  final String hash;
 
-  ShowReceipt(this.receipt);
+  ShowReceipt(this.hash);
 
   @override
   Widget build(BuildContext context) {
@@ -432,10 +428,10 @@ class _ScanReceipt extends State<ScanReceipt> {
         result = scanData;
         controller.stopCamera();
         Future.delayed(Duration.zero, () =>
-            _queryServer(result.code).then((response) {
-              var data = _parseData(response);
-              //send data to receipt
-            }));
+          _queryServer(result.code).then((response) {
+            var data = _parseData(response);
+            //send data to receipt
+          }));
       });
     });
   }

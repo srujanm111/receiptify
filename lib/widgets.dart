@@ -697,3 +697,102 @@ class CustomDialog extends StatelessWidget {
   }
 
 }
+
+class DialogTextController extends TextEditingController {
+
+  _DialogTextFieldState _state;
+
+  DialogTextController({String text}) : super(text: text);
+
+  void attachState(_DialogTextFieldState state) => _state = state;
+
+  void showError(String message) => _state.showError(message);
+
+  void clearError() => _state.clearError();
+
+}
+
+class DialogTextField extends StatefulWidget {
+
+  final DialogTextController controller;
+  final TextInputType keyboardType;
+  final String placeholder;
+  final String prefixText;
+
+  DialogTextField({this.controller, this.keyboardType = TextInputType.text, this.placeholder, this.prefixText});
+
+  @override
+  _DialogTextFieldState createState() => _DialogTextFieldState();
+}
+
+class _DialogTextFieldState extends State<DialogTextField> {
+
+  var isError = false;
+  var errorMessage = "";
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.attachState(this);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CupertinoTextField(
+          cursorColor: CupertinoTheme.of(context).primaryColor,
+          controller: widget.controller,
+          keyboardType: widget.keyboardType,
+          prefix: widget.prefixText != null ? Padding(
+            padding: EdgeInsets.only(left: 14),
+            child: Text(widget.prefixText, style: TextStyle(color: subtitle, fontSize: 16),),
+          ) : null,
+          style: TextStyle(
+            color: title,
+            fontSize: 16,
+          ),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: isError ? red : subtitle,
+              width: 2,
+            ),
+            borderRadius: BorderRadius.circular(11),
+          ),
+          padding: EdgeInsets.only(top: 12, bottom: 12, left: widget.prefixText != null ? 4 : 14, right: 14),
+          placeholder: widget.placeholder,
+          placeholderStyle: TextStyle(
+            color: subtitle,
+            fontSize: 16,
+          ),
+        ),
+        isError ? Padding(
+          padding: EdgeInsets.only(left: 16, top: 2),
+          child: Text(
+            errorMessage,
+            style: TextStyle(
+                fontSize: 14,
+                color: red
+            ),
+          ),
+        ) : Container(),
+      ],
+    );
+  }
+
+  void showError(String message) {
+    setState(() {
+      isError = true;
+      errorMessage = message;
+    });
+  }
+
+  void clearError() {
+    setState(() {
+      isError = false;
+      errorMessage = "";
+    });
+  }
+
+}

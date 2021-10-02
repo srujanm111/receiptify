@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:receiptify/business_pages.dart';
 import 'package:receiptify/customer_pages.dart';
 import 'package:receiptify/main.dart';
 
@@ -85,7 +86,7 @@ class CustomerLayout extends StatelessWidget {
   Widget _getView(int index) {
     switch (index) {
       case 0:
-        return Receipts(mockReceipts);
+        return Receipts();
       case 1:
         return ScanReceipt();
       case 2:
@@ -135,7 +136,7 @@ class BusinessLayout extends StatelessWidget {
   Widget _getView(int index) {
     switch (index) {
       case 0:
-        return CupertinoPageScaffold(child: Container());
+        return CreateReceipt();
       case 1:
         return CupertinoPageScaffold(child: Container());
       case 2:
