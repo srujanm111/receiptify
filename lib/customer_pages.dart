@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -5,7 +6,9 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:receiptify/constants.dart';
 import 'package:receiptify/data_classes.dart';
 import 'package:receiptify/functions.dart';
+import 'package:receiptify/main.dart';
 import 'package:receiptify/widgets.dart';
+import 'package:http/http.dart' as http;
 
 class Receipts extends StatefulWidget {
 
@@ -150,47 +153,150 @@ class ReceiptView extends StatelessWidget {
       child: Column(
         children: verticalSpace(card_spacing, [
           Stack(
-            alignment: Alignment.topCenter,
+            alignment: Alignment.topRight,
             children: [
-              Padding(
-                padding: EdgeInsets.all(10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(),
-                    Text(receipt.dateIssued, style: TextStyle(color: subtitle, fontSize: 15)),
-                  ],
-                ),
-              ),
               RoundCard(
                 child: Padding(
                   padding: EdgeInsets.symmetric(vertical: vertical_margin, horizontal: horizontal_margin),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      SizedBox(height: 20,),
                       Container(
                         decoration: BoxDecoration(
                           color: title,
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(30),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.all(8.0),
+                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                           child: Text(receipt.businessName, style: TextStyle(color: white, fontSize: 20),),
                         ),
                       ),
-                      RoundButton(
-                        height: 45,
-                        text: "Present Receipt",
-                        onPress: () => showCustomDialog<String>(context, CustomDialog("Receipt", ShowReceipt(receipt))),
+                      SizedBox(height: 10,),
+                      Text(receipt.address.street, style: TextStyle(color: title, fontSize: 20),),
+                      Text("${receipt.address.city}, ${receipt.address.state} ${receipt.address.zip}", style: TextStyle(color: title, fontSize: 20),),
+                      Text(receipt.phone, style: TextStyle(color: title, fontSize: 20),),
+                      SizedBox(height: 20,),
+                      ...verticalSpace(10, receipt.order.map<Widget>((product) => Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        child: Row(
+                          children: [
+                            Container(
+                              height: 30,
+                              width: 30,
+                              decoration: BoxDecoration(
+                                color: green,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Center(
+                                child: Text("${product.quantity}x", style: TextStyle(color: white, fontSize: 14),),
+                              ),
+                            ),
+                            SizedBox(width: 8,),
+                            Text(product.name, style: TextStyle(color: title, fontSize: 16),),
+                            Spacer(),
+                            Text("\$${product.price}", style: TextStyle(color: green, fontSize: 16),)
+                          ],
+                        ),
+                      )).toList()),
+                      SizedBox(height: 20,),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _dollarAmount(receipt.subtotal, "Subtotal"),
+                            _dollarAmount(receipt.total - receipt.subtotal, "Tax 6%"),
+                            _dollarAmount(receipt.total, "Total"),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 20,),
+                      Stack(
+                        alignment: Alignment.centerRight,
+                        children: [
+                          RoundButton(
+                            height: 45,
+                            text: "Present Receipt",
+                            onPress: () => showCustomDialog<String>(context, CustomDialog("Receipt", ShowReceipt(receipt))),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: Container(
+                              height: 30,
+                              width: 30,
+                              child: Center(
+                                child: Image.asset("assets/icons/qr_code.png", color: white,),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
               ),
+              Padding(
+                padding: EdgeInsets.all(10),
+                child: Text(receipt.dateIssued, style: TextStyle(color: subtitle, fontSize: 15)),
+              ),
             ],
-          )
+          ),
+          ...receipt.coupons.map((coupon) => RoundCard(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: vertical_margin, horizontal: horizontal_margin),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(coupon.details, style: TextStyle(color: title, fontSize: 20),),
+                  SizedBox(height: 15,),
+                  Stack(
+                    alignment: Alignment.centerRight,
+                    children: [
+                      RoundButton(
+                        height: 45,
+                        text: "Present Coupon",
+                        onPress: () => showCustomDialog<String>(context, CustomDialog("Coupon", ShowReceipt(receipt))),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: Container(
+                          height: 30,
+                          width: 30,
+                          child: Center(
+                            child: Image.asset("assets/icons/qr_code.png", color: white,),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 5,),
+                  Text(coupon.expirationDate, style: TextStyle(color: subtitle, fontSize: 15),),
+                ],
+              ),
+            ),
+          )).toList(),
         ]),
       ),
+    );
+  }
+
+  Widget _dollarAmount(double amount, String sub) {
+    return Column(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: green,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Text("\$${amount.toStringAsFixed(2)}", style: TextStyle(color: white, fontSize: 16),),
+          ),
+        ),
+        SizedBox(height: 2,),
+        Text(sub, style: TextStyle(color: subtitle, fontSize: 14),),
+      ],
     );
   }
 
@@ -306,9 +412,9 @@ class _ScanReceipt extends State<ScanReceipt> {
                   key: qrKey,
                   onQRViewCreated: _onQRViewCreated,
                   overlay: QrScannerOverlayShape(
-                    borderColor: green,
-                    borderRadius: 10,
-                    borderWidth: 10.0
+                      borderColor: green,
+                      borderRadius: 10,
+                      borderWidth: 10.0
                   ),
                 ),
               ),
@@ -325,6 +431,11 @@ class _ScanReceipt extends State<ScanReceipt> {
       setState(() {
         result = scanData;
         controller.stopCamera();
+        Future.delayed(Duration.zero, () =>
+            _queryServer(result.code).then((response) {
+              var data = _parseData(response);
+              //send data to receipt
+            }));
       });
     });
   }
@@ -333,6 +444,26 @@ class _ScanReceipt extends State<ScanReceipt> {
   void dispose() {
     controller.dispose();
     super.dispose();
+  }
+
+  Future _queryServer(String hash) async {
+    var url = Uri.parse(baseURL + '/retrieveHash');
+    return await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String> {
+          'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
+          'hashCode': hash,
+          'name': Receiptify.instance.customer.name ?? 'ERROR'
+        })
+    );
+  }
+
+  dynamic _parseData(response) {
+    var data = jsonDecode(response.body);
+    return data['data'];
   }
 
 }

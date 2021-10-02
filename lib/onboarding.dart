@@ -1,9 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:receiptify/base_layout.dart';
 import 'package:receiptify/constants.dart';
+import 'package:receiptify/data_classes.dart';
 import 'package:receiptify/functions.dart';
+import 'package:receiptify/main.dart';
 import 'package:receiptify/widgets.dart';
+import 'package:http/http.dart' as http;
 
 class Welcome extends StatefulWidget {
   @override
@@ -227,7 +231,11 @@ class CustomerOnboarding extends StatelessWidget {
             SizedBox(height: 50,),
             _nameField(),
             Spacer(),
-            LargeButton(title: "Continue", onPress: () => push(BaseLayout(true), context, fade: true)),
+            LargeButton(title: "Continue", onPress: () => {
+              _createUser().then((response) =>
+                  push(BaseLayout(), context, fade: true)
+              )
+            }),
           ],
         ),
       ),
@@ -241,6 +249,23 @@ class CustomerOnboarding extends StatelessWidget {
     );
   }
 
+  Future<http.Response> _createUser() async {
+    Receiptify.instance.isCustomer = true;
+    Receiptify.instance.customer = Customer(nameController.text);
+
+    var url = Uri.parse(baseURL + '/createNewUser');
+    return await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String> {
+          'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
+          'name': nameController.text
+        })
+    );
+  }
+
 }
 
 
@@ -248,8 +273,8 @@ class BusinessOnboarding extends StatelessWidget {
 
   final nameController = TextFieldController();
   final streetController = TextFieldController();
-  final cityStateController = TextFieldController();
-  final zipController = TextFieldController();
+  final cityStateZipController = TextFieldController();
+  final phoneController = TextFieldController();
 
   @override
   Widget build(BuildContext context) {
@@ -283,11 +308,13 @@ class BusinessOnboarding extends StatelessWidget {
             SizedBox(height: 20,),
             _streetField(),
             SizedBox(height: 20,),
-            _cityStateField(),
+            _cityStateZipField(),
             SizedBox(height: 20,),
-            _zipField(),
+            _phoneField(),
             Spacer(),
-            LargeButton(title: "Continue", onPress: () => push(BaseLayout(true), context, fade: true)),
+            LargeButton(title: "Continue", onPress: () =>
+                _createBusiness().then((response) => push(BaseLayout(), context, fade: true)),
+            )
           ],
         ),
       ),
@@ -308,17 +335,47 @@ class BusinessOnboarding extends StatelessWidget {
     );
   }
 
-  Widget _cityStateField() {
+  Widget _cityStateZipField() {
     return LargeTextField(
-      controller: cityStateController,
-      placeholder: "City, State",
+      controller: cityStateZipController,
+      placeholder: "City, State Zip",
     );
   }
 
-  Widget _zipField() {
+  Widget _phoneField() {
     return LargeTextField(
-      controller: zipController,
-      placeholder: "Zip",
+      controller: phoneController,
+      placeholder: "Phone Number",
+    );
+  }
+
+  Future<http.Response> _createBusiness() async {
+    Receiptify.instance.isCustomer = false;
+    String t = cityStateZipController.text;
+    final city = t.substring(0, t.indexOf(","));
+    final state = t.substring(t.indexOf(",") + 2, t.lastIndexOf(" "));
+    final zip = t.substring(t.lastIndexOf(" ") + 1);
+    Receiptify.instance.business = Business(
+      nameController.text,
+      Address(
+        street: streetController.text,
+        city: city,
+        state: state,
+        zip: zip,
+      ),
+      phoneController.text,
+    );
+
+    var url = Uri.parse(baseURL + '/createNewBusiness');
+    return await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String> {
+          'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
+          'businessName': nameController.text
+        })
     );
   }
 

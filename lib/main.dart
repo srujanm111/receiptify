@@ -1,11 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:receiptify/constants.dart';
 import 'package:receiptify/onboarding.dart';
 
-bool get isSystemDark =>
-    SchedulerBinding.instance.window.platformBrightness == Brightness.dark;
+import 'data_classes.dart';
 
 void main() {
   runApp(ReceiptifyApplication());
@@ -48,4 +46,14 @@ class ReceiptifyApplication extends StatelessWidget {
       debugShowCheckedModeBanner: false,
     );
   }
+}
+
+class Receiptify {
+
+  static Receiptify instance = Receiptify();
+
+  bool isCustomer;
+  Customer customer;
+  Business business;
+
 }

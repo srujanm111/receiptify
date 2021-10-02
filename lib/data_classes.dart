@@ -1,3 +1,21 @@
+class Customer {
+
+  String name;
+
+  Customer(this.name);
+
+}
+
+class Business {
+
+  String name;
+  Address address;
+  String phone;
+
+  Business(this.name, this.address, this.phone);
+
+}
+
 class Receipt {
 
   String dateIssued;

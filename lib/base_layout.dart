@@ -1,15 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:receiptify/customer_pages.dart';
+import 'package:receiptify/main.dart';
 
 import 'constants.dart';
 
 class BaseLayout extends StatefulWidget {
-
-  final bool customer;
-
-  BaseLayout(this.customer);
-
   @override
   _BaseLayoutState createState() => _BaseLayoutState();
 }
@@ -29,7 +25,7 @@ class _BaseLayoutState extends State<BaseLayout> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.customer ? CustomerLayout(
+    return Receiptify.instance.isCustomer ? CustomerLayout(
       controller: controller,
       onTap: onTabPress,
       keys: keys,
