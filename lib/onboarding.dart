@@ -231,7 +231,7 @@ class CustomerOnboarding extends StatelessWidget {
             _nameField(),
             Spacer(),
             LargeButton(title: "Continue", onPress: () => {
-              createUser().then((response) =>
+              _createUser().then((response) =>
                   push(BaseLayout(true), context, fade: true)
               )
             }),
@@ -248,7 +248,7 @@ class CustomerOnboarding extends StatelessWidget {
     );
   }
 
-  Future<http.Response> createUser() async{
+  Future<http.Response> _createUser() async{
     var url = Uri.parse('https://qrcoder-server.herokuapp.com/createNewUser');
     return await http.post(
         url,
@@ -271,6 +271,7 @@ class BusinessOnboarding extends StatelessWidget {
   final streetController = TextFieldController();
   final cityStateController = TextFieldController();
   final zipController = TextFieldController();
+  final phoneController = TextFieldController();
 
   @override
   Widget build(BuildContext context) {
@@ -307,8 +308,12 @@ class BusinessOnboarding extends StatelessWidget {
             _cityStateField(),
             SizedBox(height: 20,),
             _zipField(),
+            SizedBox(height: 20,),
+            _phoneField(),
             Spacer(),
-            LargeButton(title: "Continue", onPress: () => push(BaseLayout(true), context, fade: true)),
+            LargeButton(title: "Continue", onPress: () =>
+                _createBusiness().then((response) => push(BaseLayout(true), context, fade: true)),
+            )
           ],
         ),
       ),
@@ -340,6 +345,27 @@ class BusinessOnboarding extends StatelessWidget {
     return LargeTextField(
       controller: zipController,
       placeholder: "Zip",
+    );
+  }
+
+  Widget _phoneField() {
+    return LargeTextField(
+      controller: phoneController,
+      placeholder: "Phone Number",
+    );
+  }
+
+  Future<http.Response> _createBusiness() async{
+    var url = Uri.parse('https://qrcoder-server.herokuapp.com/createNewBusiness');
+    return await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String> {
+          'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
+          'businessName': nameController.text
+        })
     );
   }
 
