@@ -253,7 +253,7 @@ class CustomerOnboarding extends StatelessWidget {
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('name', nameController.text);
 
-    var url = Uri.parse('https://qrcoder-server.herokuapp.com/createNewUser');
+    var url = Uri.parse(baseURL + '/createNewUser');
     return await http.post(
         url,
         headers: <String, String>{
@@ -360,7 +360,7 @@ class BusinessOnboarding extends StatelessWidget {
   }
 
   Future<http.Response> _createBusiness() async {
-    var url = Uri.parse('https://qrcoder-server.herokuapp.com/createNewBusiness');
+    var url = Uri.parse(baseURL + '/createNewBusiness');
     return await http.post(
         url,
         headers: <String, String>{

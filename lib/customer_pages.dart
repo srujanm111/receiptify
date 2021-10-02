@@ -158,7 +158,7 @@ class _ScanReceipt extends State<ScanReceipt> {
     final prefs = await SharedPreferences.getInstance();
     String name = prefs.getString('name');
 
-    var url = Uri.parse('https://qrcoder-server.herokuapp.com/retrieveHash');
+    var url = Uri.parse(baseURL + '/retrieveHash');
     return await http.post(
         url,
         headers: <String, String>{
