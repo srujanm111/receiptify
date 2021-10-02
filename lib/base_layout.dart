@@ -89,7 +89,7 @@ class CustomerLayout extends StatelessWidget {
   Widget _getView(int index) {
     switch (index) {
       case 0:
-        return Receipts();
+        return Receipts(mockReceipts);
       case 1:
         return ScanReceipt();
       case 2:

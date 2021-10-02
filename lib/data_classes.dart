@@ -97,7 +97,7 @@ class Coupon {
   String details;
   String expirationDate;
 
-  Coupon(this.details, this.expirationDate);
+  Coupon({this.details, this.expirationDate});
 
   Coupon.fromJson(Map<String, dynamic> json) {
     details = json["couponDetails"];
