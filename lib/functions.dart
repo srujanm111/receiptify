@@ -1,4 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
+import 'package:http/http.dart' as http;
+
+import 'constants.dart';
+import 'main.dart';
 
 List<Widget> verticalSpace(double gap, List<Widget> children) {
   children.removeWhere((element) => element == null);
@@ -38,4 +44,19 @@ String currentDateString() {
 
 dynamic getAPI(String base, String function) {
   return Uri.parse(base + function);
+}
+
+Future<http.Response> subscribeToBusiness(String businessName) async{
+  var url = getAPI(baseURL, 'addSubscription');
+  return await http.post(
+      url,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String> {
+        'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
+        'name': Receiptify.instance.customer.name,
+        'subscription': businessName
+      })
+  );
 }

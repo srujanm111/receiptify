@@ -338,7 +338,7 @@ class ReceiptView extends StatelessWidget {
             onPress: () {
               String name = receipt.businessName;
 
-              _subscribeToBusiness(name).then((response) {
+              subscribeToBusiness(name).then((response) {
                 var jsonBody = jsonDecode(response.body);
                 if(jsonBody['success']) {
                   showCustomDialog<String>(context, CustomDialog("Subscribed to $name!", Icon(Icons.check)));
@@ -348,21 +348,6 @@ class ReceiptView extends StatelessWidget {
             }),
     ]),
     ),
-    );
-  }
-
-  Future<http.Response> _subscribeToBusiness(String businessName) async{
-    var url = getAPI(baseURL, 'addSubscription');
-    return await http.post(
-        url,
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String> {
-          'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
-          'name': Receiptify.instance.customer.name,
-          'subscription': businessName
-        })
     );
   }
 
@@ -518,19 +503,28 @@ class _BusinessesState extends State<Businesses> {
   void initState() {
     super.initState();
     tabViewKey = GlobalKey<CustomTabBarViewState>();
+    subscribedBusinesses = [];
+    unsubscribedBusinesses = [];
+    isSubscription = false;
     _getSubscriptions().then((ls) {
-      setState(() {
-        ls.forEach((entry) {
-          String bus = entry.keys.first;
-          bool subbed = entry[entry.keys.first];
-          if (subbed && !subscribedBusinesses.contains(bus)) {
-            subscribedBusinesses.add(bus);
-          } else if (!subbed && !unsubscribedBusinesses.contains(bus)) {
-            unsubscribedBusinesses.add(bus);
-          }
-        });
-        print(subscribedBusinesses.length);
-        print(unsubscribedBusinesses.length);
+      buildSubscriptions(ls);
+    });
+  }
+
+  void buildSubscriptions(List<Map<String, bool>> ls) {
+    setState(() {
+      print('vroom');
+      ls.forEach((entry) {
+        String bus = entry.keys.first;
+        print(bus);
+        bool subbed = entry[entry.keys.first];
+        if (subbed && !subscribedBusinesses.contains(bus)) {
+          subscribedBusinesses.add(bus);
+        } else if (!subbed && !unsubscribedBusinesses.contains(bus)) {
+          unsubscribedBusinesses.add(bus);
+        }
+        print(subscribedBusinesses);
+        print(unsubscribedBusinesses);
       });
     });
   }
@@ -556,26 +550,89 @@ class _BusinessesState extends State<Businesses> {
               return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
                   child: RoundCard(
-                      height: 45,
-                      child: Stack (
+                      height: 100,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+                          child: Stack (
                           children: [
                             Container(
-                              height: 45,
                               decoration: BoxDecoration(
-                                  color: index < subscribedBusinesses.length?green:white,
-                                  borderRadius: BorderRadius.circular(15)
+                                  color: white,
+                                  borderRadius: BorderRadius.circular(25)
                               ),
                             ),
-                            Center(
-                                child: index < subscribedBusinesses.length?
-                                  Text(subscribedBusinesses[index]) :
+                            Column (
+                                children:[
+                                  Center(
+                                    child: index < subscribedBusinesses.length?
+                                    Text(subscribedBusinesses[index],
+                                        style: TextStyle(
+                                            color: title,
+                                            fontSize: 20
+                                        )
+                                    ) :
                                     Text(unsubscribedBusinesses[index - subscribedBusinesses.length],
                                       style: TextStyle(
-                                          color: green
+                                          color: title,
+                                          fontSize: 20
                                       ),
                                     ),
-                            )
+                                  ),
+                                  SizedBox(height: 8,),
+                                  RoundCard(
+                                    height: 40,
+                                    width: 300,
+                                    child: Stack(
+                                      children: [
+                                        Container(
+                                          decoration: BoxDecoration(
+                                              color: index < subscribedBusinesses.length?white:green,
+                                              border: Border.all(
+                                                color: green,
+                                                width: 6
+                                              ),
+                                              borderRadius: BorderRadius.circular(10)
+                                          ),
+                                        ),
+                                        index < subscribedBusinesses.length?
+                                        Center(
+                                          child: Text('Subscribed',
+                                            style: TextStyle(
+                                                color: title,
+                                                fontSize: 18
+                                            ),
+                                          ),
+                                        )
+                                           :
+                                        Center(
+                                          child: TextButton(
+                                            child: Text('Subscribe',
+                                                style: TextStyle(
+                                                    color: white,
+                                                    fontSize: 18
+                                                )
+                                            ),
+                                            onPressed: () {
+                                              String name = unsubscribedBusinesses[index - subscribedBusinesses.length];
+                                              subscribeToBusiness(name).then((response) {
+                                                var jsonBody = jsonDecode(response.body);
+                                                if(jsonBody['success']) {
+                                                  showCustomDialog<String>(context,
+                                                      CustomDialog("Subscribed to $name!", Icon(Icons.check))).then((val) {
+                                                        _getSubscriptions().then((value) =>
+                                                            setState(() => buildSubscriptions(value)));
+                                                  });
+                                                }
+                                              });
+                                            }
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  )
+                                ])
                           ])
+                      )
                   )
               );
             }))
@@ -584,6 +641,9 @@ class _BusinessesState extends State<Businesses> {
   }
 
   Future<List<Map<String,bool>>> _getSubscriptions() async{
+    subscribedBusinesses = [];
+    unsubscribedBusinesses = [];
+
     var url = getAPI(baseURL, 'getSubscriptions');
     var response = await http.post(
       url,
@@ -612,15 +672,19 @@ class _BusinessesState extends State<Businesses> {
     var jsonData2 = jsonDecode(response2.body);
     List<Map<String,bool>> ret = [];
     Set<String> subbedSet = <String>{};
+    print(jsonData);
+    print(jsonData2);
     if(jsonData['success']) {
       (List<String>.from(jsonData['subscriptions'])).forEach((element) {
           ret.add({element: true});
           subbedSet.add(element);
       });
     }
+    print(subbedSet);
     if(jsonData2['success']) {
       (List<String>.from(jsonData2['businessList'])).forEach((element) {
         if(!subbedSet.contains(element)) {
+          print('Not Subbed To ' + element);
           ret.add({element: false});
         }
       });
