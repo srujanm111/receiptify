@@ -234,10 +234,10 @@ class CustomerOnboarding extends StatelessWidget {
             SizedBox(height: 50,),
             _emailField(),
             Spacer(),
-            LargeButton(title: "Continue", onPress: () => {
-              _createUser().then((response) =>
-                  push(BaseLayout(true), context, fade: true)
-              )
+            LargeButton(title: "Continue", onPress: () {
+              _createUser().then((response) {
+                  push(BaseLayout(true), context, fade: true);
+              });
             }),
           ],
         ),

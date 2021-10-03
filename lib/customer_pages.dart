@@ -312,16 +312,16 @@ class _ScanReceipt extends State<ScanReceipt> {
             hasScrollBody: false,
             child: Padding(
               padding: EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 40),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(30.0),
-                child: QRView(
+              child: Container(
+                child:
+                QRView(
                   key: qrKey,
                   onQRViewCreated: _onQRViewCreated,
                   overlay: QrScannerOverlayShape(
                     borderColor: green,
                     borderRadius: 10,
                     borderWidth: 10.0
-                  ),
+                  )
                 ),
               ),
             ),
