@@ -46,9 +46,22 @@ class _ReceiptsState extends State<Receipts> {
                   if (snapshot.connectionState != ConnectionState.done) {
                     return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(green)));
                   } else if (snapshot.hasData) {
-                    return Column(
-                      children: verticalSpace(card_spacing, snapshot.data.map((r) => _receiptCard(r)).toList()),
-                    );
+                    if (snapshot.data.isEmpty) {
+                      return Column(
+                        children: [
+                          RoundCard(
+                            height: 45,
+                            child: Center(
+                              child: Text("No Receipts Added", style: TextStyle(color: title, fontSize: 18)),
+                            ),
+                          )
+                        ],
+                      );
+                    } else {
+                      return Column(
+                        children: verticalSpace(card_spacing, snapshot.data.map((r) => _receiptCard(r)).toList()),
+                      );
+                    }
                   } else {
                     return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(green)));
                   }
@@ -603,7 +616,8 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
     );
 
     var json = jsonDecode(response.body);
-    return (json['messageData'] as List<Map<String, dynamic>>).map<Message>((e) => Message.fromJson(e)).toList();
+    var b =  json['messageData'].map<Message>((e) => Message.fromJson(e)).toList();
+    return b;
   }
 
   Widget _announcement(Message message) {

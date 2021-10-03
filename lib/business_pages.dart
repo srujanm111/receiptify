@@ -727,7 +727,7 @@ class _AnnouncementsState extends State<Announcements> {
     );
 
     var json = jsonDecode(response.body);
-    return (json['messageData'] as List<Map<String, dynamic>>).map<Message>((e) => Message.fromJson(e)).toList();
+    return json['messageData'].map<Message>((e) => Message.fromJson(e)).toList();
   }
 
   Future _createAnnouncement() async {
