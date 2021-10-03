@@ -603,7 +603,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
     );
 
     var json = jsonDecode(response.body);
-    (json['messageData'] as List<Map<String, dynamic>>).map((e) => null);
+    return (json['messageData'] as List<Map<String, dynamic>>).map<Message>((e) => Message.fromJson(e));
   }
 
   Widget _announcement(Message message) {
