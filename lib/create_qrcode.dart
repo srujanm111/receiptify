@@ -15,7 +15,7 @@ class ShowQRCode extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
           child: QrImage(
-            data: hash,
+            data: hash ?? "ERROR",
             version: QrVersions.auto,
           ),
         ),

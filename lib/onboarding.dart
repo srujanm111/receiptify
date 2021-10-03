@@ -377,7 +377,7 @@ class BusinessOnboarding extends StatelessWidget {
       phoneController.text,
     );
 
-    var url = Uri.parse(baseURL + '/createNewBusiness');
+    var url = Uri.parse(baseURL + 'createNewBusiness');
     return await http.post(
         url,
         headers: <String, String>{

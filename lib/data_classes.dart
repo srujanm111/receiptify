@@ -41,7 +41,7 @@ class Receipt {
     businessName = json["businessName"];
     address = Address.fromJson(json["businessAddress"]);
     phone = json["businessPhone"];
-    subtotal = json["subtotal"];
+    subtotal = json["subtotal"].toDouble();
     total = json["total"];
     order = (json["orderInfo"] as List).map<Product>((map) => Product.fromJson(map)).toList();
     coupons = (json["couponInfo"] as List).map<Coupon>((map) => Coupon.fromJson(map)).toList();
@@ -99,7 +99,7 @@ class Product {
 
   Product.fromJson(Map<String, dynamic> json) {
     name = json["name"];
-    price = json["price"];
+    price = json["price"].toDouble();
     quantity = json["quantity"];
   }
 

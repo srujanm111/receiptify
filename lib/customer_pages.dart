@@ -64,6 +64,7 @@ class _ReceiptsState extends State<Receipts> {
       body: jsonEncode(<String, String> {
         'securityCode': securityCode,
         'name': Receiptify.instance.customer.name,
+        'email': Receiptify.instance.customer.email
       }),
     );
     var json = jsonDecode(response.body);
