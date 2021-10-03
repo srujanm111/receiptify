@@ -10,6 +10,7 @@ import 'package:receiptify/functions.dart';
 import 'package:receiptify/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart' as foundation;
 import 'package:qr_flutter/qr_flutter.dart';
 
 class Receipts extends StatefulWidget {
@@ -214,6 +215,7 @@ class ShowReceipt extends StatelessWidget {
         QrImage(
           data: receipt.hash,
           version: QrVersions.auto,
+          size: 200
         ),
         RoundButton(
           text: "Done",
@@ -290,10 +292,12 @@ class _ScanReceipt extends State<ScanReceipt> {
   @override
   void reassemble() {
     super.reassemble();
-    if (Platform.isAndroid) {
-      controller.pauseCamera();
-    } else if (Platform.isIOS) {
-      controller.resumeCamera();
+    if(!foundation.kIsWeb) {
+      if (Platform.isAndroid) {
+        controller.pauseCamera();
+      } else if (Platform.isIOS) {
+        controller.resumeCamera();
+      }
     }
   }
 
@@ -327,18 +331,25 @@ class _ScanReceipt extends State<ScanReceipt> {
     );
   }
 
+  void _pass(QRViewController controller) {
+    //do nothing
+  }
+
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
       setState(() {
-        result = scanData;
-        controller.pauseCamera();
-        Future.delayed(Duration.zero, () =>
-            _queryServer(result.code).then((response) {
-              var receipt = _parseData(response);
-              print('Name ' + receipt.businessName);
-              receiptManager.addReceipt(receipt);
-            }));
+        if(result == null) {
+          result = scanData;
+          if (!foundation.kIsWeb) {
+            controller.pauseCamera();
+          }
+          Future.delayed(Duration.zero, () =>
+              _queryServer(result.code).then((response) {
+                var receipt = _parseData(response);
+                receiptManager.addReceipt(receipt);
+              }));
+        }
       });
     });
   }
@@ -354,8 +365,6 @@ class _ScanReceipt extends State<ScanReceipt> {
     String name = prefs.getString('name');
     String email = prefs.getString('email');
 
-    print('Retrieving new ' + hash);
-
     var url = Uri.parse(baseURL + 'retrieveHash');
     var response = await http.post(
         url,
@@ -370,13 +379,12 @@ class _ScanReceipt extends State<ScanReceipt> {
         })
     );
 
-    print('Response from server: ' + response.body);
     return response;
   }
 
   Receipt _parseData(response) {
     var data = jsonDecode(response.body);
-    return Receipt.fromJson(data);
+    return Receipt.fromJson(data['data']);
   }
 
 }

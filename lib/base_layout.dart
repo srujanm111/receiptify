@@ -92,7 +92,6 @@ class _CustomerLayout extends State<CustomerLayout> {
   Widget _getView(int index) {
     switch (index) {
       case 0:
-        print('Current Receipts: '+ receiptManager.currentReceipts.length.toString());
         return Receipts(receiptManager.currentReceipts);
       case 1:
         return ScanReceipt();

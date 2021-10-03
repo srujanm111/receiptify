@@ -17,6 +17,8 @@ class Receipt {
   }
 
   Receipt.fromJson(Map<String, dynamic> json) {
+    print('Keys');
+    print(json.keys);
     dateIssued = json["dateIssued"];
     businessName = json["businessName"];
     address = Address.fromJson(json["businessAddress"]);
@@ -24,8 +26,8 @@ class Receipt {
     subtotal = json["subtotal"];
     total = json["total"];
     hash = json["hash"];
-    order = (json["order"] as List).map<Product>((map) => Product.fromJson(map)).toList();
-    coupons = (json["coupons"] as List).map<Coupon>((map) => Coupon.fromJson(map)).toList();
+    order = (json["orderInfo"] as List).map<Product>((map) => Product.fromJson(map)).toList();
+    coupons = (json["couponInfo"] as List).map<Coupon>((map) => Coupon.fromJson(map)).toList();
   }
 
   Map<String, dynamic> toJson() {
@@ -37,8 +39,8 @@ class Receipt {
     json["subtotal"] = subtotal;
     json["total"] = total;
     json["hash"] = hash;
-    json["order"] = order.map<Map<String, dynamic>>((product) => product.toJson()).toList();
-    json["coupons"] = coupons.map<Map<String, dynamic>>((coupon) => coupon.toJson()).toList();
+    json["orderInfo"] = order.map<Map<String, dynamic>>((product) => product.toJson()).toList();
+    json["couponInfo"] = coupons.map<Map<String, dynamic>>((coupon) => coupon.toJson()).toList();
     return json;
   }
 

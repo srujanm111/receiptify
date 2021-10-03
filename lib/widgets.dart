@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:receiptify/constants.dart';
+import 'package:flutter/foundation.dart' as foundation;
 
 class ReceiptifyTitle extends StatelessWidget {
 
@@ -257,7 +258,9 @@ class SliverNavigationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     double min = 44 + MediaQuery.of(context).padding.top;
     return SliverPersistentHeader(
-      delegate: SliverNavigationBarHeader(min, min + 52, title),
+      delegate: foundation.kIsWeb?
+      SliverNavigationBarHeader(44, 96, title):
+      SliverNavigationBarHeader(min, min + 52, title),
       pinned: true,
     );
   }
