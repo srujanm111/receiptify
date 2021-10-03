@@ -552,7 +552,7 @@ class _BusinessesState extends State<Businesses> {
                   child: RoundCard(
                       height: 100,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 0),
                           child: Stack (
                           children: [
                             Container(
@@ -578,8 +578,23 @@ class _BusinessesState extends State<Businesses> {
                                       ),
                                     ),
                                   ),
-                                  SizedBox(height: 8,),
-                                  RoundCard(
+                                  CupertinoButton(
+                                      onPressed: index < subscribedBusinesses.length?() =>
+    showCustomDialog<String>(context,
+    CustomDialog("Already subscribed to " + subscribedBusinesses[index] + "!", Icon(Icons.check)))  : () {
+                                        String name = unsubscribedBusinesses[index - subscribedBusinesses.length];
+                                        subscribeToBusiness(name).then((response) {
+                                          var jsonBody = jsonDecode(response.body);
+                                          if(jsonBody['success']) {
+                                            showCustomDialog<String>(context,
+                                                CustomDialog("Subscribed to $name!", Icon(Icons.check))).then((val) {
+                                              _getSubscriptions().then((value) =>
+                                                  setState(() => buildSubscriptions(value)));
+                                            });
+                                          }
+                                        });
+                                      },
+                                  child : RoundCard(
                                     height: 40,
                                     width: 300,
                                     child: Stack(
@@ -605,31 +620,16 @@ class _BusinessesState extends State<Businesses> {
                                         )
                                            :
                                         Center(
-                                          child: TextButton(
-                                            child: Text('Subscribe',
+                                          child:  Text('Subscribe',
                                                 style: TextStyle(
                                                     color: white,
                                                     fontSize: 18
                                                 )
                                             ),
-                                            onPressed: () {
-                                              String name = unsubscribedBusinesses[index - subscribedBusinesses.length];
-                                              subscribeToBusiness(name).then((response) {
-                                                var jsonBody = jsonDecode(response.body);
-                                                if(jsonBody['success']) {
-                                                  showCustomDialog<String>(context,
-                                                      CustomDialog("Subscribed to $name!", Icon(Icons.check))).then((val) {
-                                                        _getSubscriptions().then((value) =>
-                                                            setState(() => buildSubscriptions(value)));
-                                                  });
-                                                }
-                                              });
-                                            }
                                           ),
-                                        ),
                                       ],
                                     )
-                                  )
+                                  ))
                                 ])
                           ])
                       )
