@@ -11,6 +11,7 @@ import 'package:receiptify/functions.dart';
 import 'package:receiptify/main.dart';
 import 'package:receiptify/widgets.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart' as foundation;
 
 class Receipts extends StatefulWidget {
 
@@ -403,22 +404,33 @@ class _ScanReceipt extends State<CustomerScanReceipt> {
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
-      controller.stopCamera();
       setState(() {
-        result = scanData;
-        _getReceipt(result.code).then((receipt) {
-          showCustomDialog(context, CustomDialog("Receipt Added!", Column(
-            children: [
-              Text("Thank you for shopping at ${receipt.businessName}", style: TextStyle(color: green, fontSize: 18,), textAlign: TextAlign.center,),
-              SizedBox(height: 10),
-              RoundButton(
-                text: "Done",
-                height: 45,
-                onPress: () => Navigator.of(context).pop(),
-              )
-            ],
-          )));
-        });
+        if (result == null) {
+          result = scanData;
+          if (!foundation.kIsWeb) {
+            controller.pauseCamera();
+          }
+          _getReceipt(result.code).then((receipt) {
+            showCustomDialog(context, CustomDialog("Receipt Added!", Builder(
+              builder: (context) => Column(
+                children: [
+                  Text("Thank you for shopping at ${receipt.businessName}", style: TextStyle(color: green, fontSize: 18,), textAlign: TextAlign.center,),
+                  SizedBox(height: 20),
+                  RoundButton(
+                    text: "View",
+                    height: 45,
+                    onPress: () => Navigator.of(context).pop(),
+                  )
+                ],
+              ),
+            ))).whenComplete(() {
+              push(ReceiptView(receipt), context);
+              controller.resumeCamera();
+            });
+
+          });
+        }
+
       });
     });
   }
