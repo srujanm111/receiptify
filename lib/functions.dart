@@ -35,3 +35,7 @@ String currentDateString() {
   final now = DateTime.now();
   return "${now.month}/0${now.day}/${now.year}";
 }
+
+dynamic getAPI(String base, String function) {
+  return Uri.parse(base + function);
+}

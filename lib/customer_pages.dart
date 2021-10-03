@@ -332,8 +332,37 @@ class ReceiptView extends StatelessWidget {
               ),
             ),
           )).toList(),
-        ]),
-      ),
+          RoundButton(
+            height: 45,
+            text: "Subscribe to " + receipt.businessName + "!",
+            onPress: () {
+              String name = receipt.businessName;
+
+              _subscribeToBusiness(name).then((response) {
+                var jsonBody = jsonDecode(response.body);
+                if(jsonBody['success']) {
+                  showCustomDialog<String>(context, CustomDialog("Subscribed to $name!", Icon(Icons.check)));
+                }
+              });
+
+            }),
+    ]),
+    ),
+    );
+  }
+
+  Future<http.Response> _subscribeToBusiness(String businessName) async{
+    var url = getAPI(baseURL, 'addSubscription');
+    return await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String> {
+          'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
+          'name': Receiptify.instance.customer.name,
+          'subscription': businessName
+        })
     );
   }
 
@@ -481,11 +510,123 @@ class Businesses extends StatefulWidget {
 class _BusinessesState extends State<Businesses> {
 
   GlobalKey<CustomTabBarViewState> tabViewKey;
+  bool isSubscription = false;
+  List<String> subscribedBusinesses = [];
+  List<String> unsubscribedBusinesses = [];
 
   @override
   void initState() {
     super.initState();
     tabViewKey = GlobalKey<CustomTabBarViewState>();
+    _getSubscriptions().then((ls) {
+      setState(() {
+        ls.forEach((entry) {
+          String bus = entry.keys.first;
+          bool subbed = entry[entry.keys.first];
+          if (subbed && !subscribedBusinesses.contains(bus)) {
+            subscribedBusinesses.add(bus);
+          } else if (!subbed && !unsubscribedBusinesses.contains(bus)) {
+            unsubscribedBusinesses.add(bus);
+          }
+        });
+        print(subscribedBusinesses.length);
+        print(unsubscribedBusinesses.length);
+      });
+    });
+  }
+
+  Widget _initAnnouncements() {
+    return Container(
+      child: SafeArea(
+        child: Center(
+          child: Icon(Icons.mail)
+        )
+      )
+    );
+  }
+
+  Widget _initSubscriptions() {
+    return Container(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 0),
+        child: ListView.separated (
+            itemCount: subscribedBusinesses.length + unsubscribedBusinesses.length,
+            separatorBuilder: (BuildContext context, int index) => const Spacer(),
+            itemBuilder: ( (context, index) {
+              return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+                  child: RoundCard(
+                      height: 45,
+                      child: Stack (
+                          children: [
+                            Container(
+                              height: 45,
+                              decoration: BoxDecoration(
+                                  color: index < subscribedBusinesses.length?green:white,
+                                  borderRadius: BorderRadius.circular(15)
+                              ),
+                            ),
+                            Center(
+                                child: index < subscribedBusinesses.length?
+                                  Text(subscribedBusinesses[index]) :
+                                    Text(unsubscribedBusinesses[index - subscribedBusinesses.length],
+                                      style: TextStyle(
+                                          color: green
+                                      ),
+                                    ),
+                            )
+                          ])
+                  )
+              );
+            }))
+      )
+    );
+  }
+
+  Future<List<Map<String,bool>>> _getSubscriptions() async{
+    var url = getAPI(baseURL, 'getSubscriptions');
+    var response = await http.post(
+      url,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String> {
+        'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
+        'name': Receiptify.instance.customer.name,
+      }),
+    );
+
+    var url2 = getAPI(baseURL, 'getBusinessList');
+    var response2 = await http.post(
+      url2,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String> {
+        'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
+        'name': Receiptify.instance.customer.name,
+      }),
+    );
+
+    var jsonData = jsonDecode(response.body);
+    var jsonData2 = jsonDecode(response2.body);
+    List<Map<String,bool>> ret = [];
+    Set<String> subbedSet = <String>{};
+    if(jsonData['success']) {
+      (List<String>.from(jsonData['subscriptions'])).forEach((element) {
+          ret.add({element: true});
+          subbedSet.add(element);
+      });
+    }
+    if(jsonData2['success']) {
+      (List<String>.from(jsonData2['businessList'])).forEach((element) {
+        if(!subbedSet.contains(element)) {
+          ret.add({element: false});
+        }
+      });
+    }
+
+    return ret;
   }
 
   @override
@@ -508,8 +649,8 @@ class _BusinessesState extends State<Businesses> {
             key: tabViewKey,
             useChildDirectly: true,
             tabs: [
-              SliverFillRemaining(hasScrollBody: false, child: Container()),
-              SliverFillRemaining(hasScrollBody: false, child: Container()),
+              SliverFillRemaining(hasScrollBody: true, child: _initAnnouncements()),
+              SliverFillRemaining(hasScrollBody: true, child: _initSubscriptions()),
             ],
           ),
         ],
@@ -519,6 +660,7 @@ class _BusinessesState extends State<Businesses> {
 
   void changePage(int page) {
     tabViewKey.currentState.changePage(page);
+    setState( () => isSubscription = !isSubscription);
   }
 
 }
