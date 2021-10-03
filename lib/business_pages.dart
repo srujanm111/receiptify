@@ -493,13 +493,24 @@ class _ScanReceipt extends State<BusinessScanReceipt> {
     super.dispose();
   }
 
-  Future _queryServer(String hash) async {
-    // TODO get receipt using hash from QR code
+  Future<http.Response> _queryServer(String hash) async {
+    var url = getAPI(baseURL, 'retrieveHashBusiness');
+    return http.post(
+      url,
+      headers: <String, String> {
+      'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String> {
+        'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
+        'hashCode': hash,
+        'businessName': Receiptify.instance.business.name,
+      }),
+    );
   }
 
   Receipt _parseData(response) {
     final json = jsonDecode(response.body);
-    return Receipt.fromJson(json);
+    return Receipt.fromJson(json['data']);
   }
 
 }
@@ -657,5 +668,6 @@ class _AnnouncementsState extends State<Announcements> {
       ),
     );
   }
+
 
 }

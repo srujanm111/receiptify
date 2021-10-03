@@ -46,6 +46,15 @@ dynamic getAPI(String base, String function) {
   return Uri.parse(base + function);
 }
 
+String zeroPad(int num, int digits) {
+  String str = num.toString();
+  while(str.length < digits) {
+    str = '0' + str;
+  }
+
+  return str;
+}
+
 Future<http.Response> subscribeToBusiness(String businessName) async{
   var url = getAPI(baseURL, 'addSubscription');
   return await http.post(
