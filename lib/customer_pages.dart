@@ -320,62 +320,12 @@ class ShowReceipt extends StatelessWidget {
 
 }
 
-class Businesses extends StatefulWidget {
-  @override
-  _BusinessesState createState() => _BusinessesState();
+class CustomerScanReceipt extends StatefulWidget {
+
+  State<CustomerScanReceipt> createState() => _ScanReceipt();
 }
 
-class _BusinessesState extends State<Businesses> {
-
-  GlobalKey<CustomTabBarViewState> tabViewKey;
-
-  @override
-  void initState() {
-    super.initState();
-    tabViewKey = GlobalKey<CustomTabBarViewState>();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      child: CustomScrollView(
-        slivers: [
-          TabbedNavigationBar(
-            "Businesses",
-            PinnedSelector(
-              initialIndex: 0,
-              items: [
-                SelectorItem("Announcements", () => changePage(0)),
-                SelectorItem("Subscriptions", () => changePage(1)),
-              ],
-            ),
-          ),
-          CustomTabBarView(
-            initialIndex: 0,
-            key: tabViewKey,
-            useChildDirectly: true,
-            tabs: [
-              SliverFillRemaining(hasScrollBody: false, child: Container()),
-              SliverFillRemaining(hasScrollBody: false, child: Container()),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  void changePage(int page) {
-    tabViewKey.currentState.changePage(page);
-  }
-
-}
-
-class ScanReceipt extends StatefulWidget {
-
-  State<ScanReceipt> createState() => _ScanReceipt();
-}
-
-class _ScanReceipt extends State<ScanReceipt> {
+class _ScanReceipt extends State<CustomerScanReceipt> {
 
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   Barcode result;
@@ -427,11 +377,20 @@ class _ScanReceipt extends State<ScanReceipt> {
       setState(() {
         result = scanData;
         controller.stopCamera();
-        Future.delayed(Duration.zero, () =>
-          _queryServer(result.code).then((response) {
-            var data = _parseData(response);
-            //send data to receipt
-          }));
+        _queryServer(result.code).then((response) {
+          final receipt = _parseData(response);
+
+          showCustomDialog(context, CustomDialog("Receipt Added!", Column(
+            children: [
+              Text("Thank you for shopping at ${receipt.businessName}", style: TextStyle(color: title, fontSize: 20)),
+              RoundButton(
+                text: "Done",
+                height: 45,
+                onPress: () => Navigator.of(context).pop(),
+              )
+            ],
+          )));
+        });
       });
     });
   }
@@ -457,9 +416,59 @@ class _ScanReceipt extends State<ScanReceipt> {
     );
   }
 
-  dynamic _parseData(response) {
-    var data = jsonDecode(response.body);
-    return data['data'];
+  Receipt _parseData(response) {
+    final json = jsonDecode(response.body);
+    return Receipt.fromJson(json);
+  }
+
+}
+
+class Businesses extends StatefulWidget {
+  @override
+  _BusinessesState createState() => _BusinessesState();
+}
+
+class _BusinessesState extends State<Businesses> {
+
+  GlobalKey<CustomTabBarViewState> tabViewKey;
+
+  @override
+  void initState() {
+    super.initState();
+    tabViewKey = GlobalKey<CustomTabBarViewState>();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoPageScaffold(
+      child: CustomScrollView(
+        slivers: [
+          TabbedNavigationBar(
+            "Businesses",
+            PinnedSelector(
+              initialIndex: 0,
+              items: [
+                SelectorItem("Announcements", () => changePage(0)),
+                SelectorItem("Subscriptions", () => changePage(1)),
+              ],
+            ),
+          ),
+          CustomTabBarView(
+            initialIndex: 0,
+            key: tabViewKey,
+            useChildDirectly: true,
+            tabs: [
+              SliverFillRemaining(hasScrollBody: false, child: Container()),
+              SliverFillRemaining(hasScrollBody: false, child: Container()),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void changePage(int page) {
+    tabViewKey.currentState.changePage(page);
   }
 
 }

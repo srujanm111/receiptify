@@ -88,7 +88,7 @@ class CustomerLayout extends StatelessWidget {
       case 0:
         return Receipts();
       case 1:
-        return ScanReceipt();
+        return CustomerScanReceipt();
       case 2:
         return Businesses();
     }
@@ -138,9 +138,9 @@ class BusinessLayout extends StatelessWidget {
       case 0:
         return CreateReceipt();
       case 1:
-        return CupertinoPageScaffold(child: Container());
+        return BusinessScanReceipt();
       case 2:
-        return CupertinoPageScaffold(child: Container());
+        return Announcements();
     }
     return CupertinoPageScaffold(child: Container());
   }

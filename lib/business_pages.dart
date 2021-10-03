@@ -153,7 +153,7 @@ class _CreateReceiptState extends State<CreateReceipt> {
             RoundButton(
               height: 45,
               text: "Create Receipt",
-              onPress: () {
+              onPress: () async {
                 final receipt = Receipt(
                   dateIssued: currentDateString(),
                   businessName: Receiptify.instance.business.name,
@@ -165,7 +165,10 @@ class _CreateReceiptState extends State<CreateReceipt> {
                   coupons: couponsMade,
                 );
                 // TODO get hash for receipt
-                showCustomDialog<String>(context, CustomDialog("Receipt", ShowQrCode("RECEIPT HASH")));
+                await showCustomDialog<String>(context, CustomDialog("Receipt", ShowQrCode("RECEIPT HASH")));
+                productsOrdered = [];
+                couponsMade = [];
+                setState(() {});
               },
             ),
             Padding(
@@ -350,4 +353,294 @@ class AddCoupon extends StatelessWidget {
       ],
     );
   }
+}
+
+class BusinessScanReceipt extends StatefulWidget {
+
+  State<BusinessScanReceipt> createState() => _ScanReceipt();
+}
+
+class _ScanReceipt extends State<BusinessScanReceipt> {
+
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  Barcode result;
+  QRViewController controller;
+  bool isReceipt = true;
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    if (Platform.isAndroid) {
+      controller.pauseCamera();
+    } else if (Platform.isIOS) {
+      controller.resumeCamera();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoPageScaffold(
+      backgroundColor: green,
+      child: CustomScrollView(
+        slivers: [
+          SliverNavigationBar("Scan QR Code"),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 40, left: 80, right: 80),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      RoundButton(
+                        inverted: isReceipt,
+                        height: 42,
+                        width: 100,
+                        text: "Receipt",
+                        onPress: () => setState(() => isReceipt = true),
+                      ),
+                      RoundButton(
+                        inverted: !isReceipt,
+                        height: 42,
+                        width: 100,
+                        text: "Coupon",
+                        onPress: () => setState(() => isReceipt = false),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 100),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(30.0),
+                    child: QRView(
+                      key: qrKey,
+                      onQRViewCreated: _onQRViewCreated,
+                      overlay: QrScannerOverlayShape(
+                          borderColor: green,
+                          borderRadius: 10,
+                          borderWidth: 10.0
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onQRViewCreated(QRViewController controller) {
+    this.controller = controller;
+    controller.scannedDataStream.listen((scanData) {
+      setState(() {
+        result = scanData;
+        controller.stopCamera();
+        _queryServer(result.code).then((response) {
+          final receipt = _parseData(response);
+          if (isReceipt) {
+            showCustomDialog(context, CustomDialog("Validated Receipt", Column(
+              children: [
+                RoundButton(
+                  text: "View",
+                  height: 45,
+                  onPress: () => Navigator.of(context).pop(),
+                )
+              ],
+            ))).whenComplete(() {
+              push(ReceiptView(receipt), context);
+            });
+          } else {
+            showCustomDialog(context, CustomDialog("Verified Coupon!", Column(
+              children: [
+                Text(receipt.coupons[0].details, style: TextStyle(color: title, fontSize: 20)),
+                Text("Exp: ${receipt.coupons[0].expirationDate}", style: TextStyle(color: subtitle, fontSize: 15)),
+                RoundButton(
+                  text: "Use and Deactivate",
+                  height: 45,
+                  onPress: () => Navigator.of(context).pop(),
+                )
+              ],
+            )));
+          }
+        });
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  Future _queryServer(String hash) async {
+    // TODO get receipt using hash from QR code
+  }
+
+  Receipt _parseData(response) {
+    final json = jsonDecode(response.body);
+    return Receipt.fromJson(json);
+  }
+
+}
+
+class ReceiptView extends StatelessWidget {
+
+  final Receipt receipt;
+
+  ReceiptView(this.receipt);
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(receipt.businessName),
+        transitionBetweenRoutes: false,
+        backgroundColor: CupertinoTheme.of(context).primaryColor,
+        brightness: Brightness.dark,
+        border: null,
+        leading: ArrowButton(direction: ArrowDirection.left, onPress: () => Navigator.of(context).pop(),),
+      ),
+      child: CustomScrollView(
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: _body(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _body(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(edge_padding),
+      child: Column(
+        children: verticalSpace(card_spacing, [
+          Stack(
+            alignment: Alignment.topRight,
+            children: [
+              RoundCard(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: vertical_margin, horizontal: horizontal_margin),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(height: 20,),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: title,
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                          child: Text(receipt.businessName, style: TextStyle(color: white, fontSize: 20),),
+                        ),
+                      ),
+                      SizedBox(height: 10,),
+                      Text(receipt.address.street, style: TextStyle(color: title, fontSize: 20),),
+                      Text("${receipt.address.city}, ${receipt.address.state} ${receipt.address.zip}", style: TextStyle(color: title, fontSize: 20),),
+                      Text(receipt.phone, style: TextStyle(color: title, fontSize: 20),),
+                      SizedBox(height: 20,),
+                      ...verticalSpace(10, receipt.order.map<Widget>((product) => Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        child: Row(
+                          children: [
+                            Container(
+                              height: 30,
+                              width: 30,
+                              decoration: BoxDecoration(
+                                color: green,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Center(
+                                child: Text("${product.quantity}x", style: TextStyle(color: white, fontSize: 14),),
+                              ),
+                            ),
+                            SizedBox(width: 8,),
+                            Text(product.name, style: TextStyle(color: title, fontSize: 16),),
+                            Spacer(),
+                            Text("\$${product.price}", style: TextStyle(color: green, fontSize: 16),)
+                          ],
+                        ),
+                      )).toList()),
+                      SizedBox(height: 20,),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _dollarAmount(receipt.subtotal, "Subtotal"),
+                            _dollarAmount(receipt.total - receipt.subtotal, "Tax 6%"),
+                            _dollarAmount(receipt.total, "Total"),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(10),
+                child: Text(receipt.dateIssued, style: TextStyle(color: subtitle, fontSize: 15)),
+              ),
+            ],
+          ),
+        ]),
+      ),
+    );
+  }
+
+  Widget _dollarAmount(double amount, String sub) {
+    return Column(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: green,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Text("\$${amount.toStringAsFixed(2)}", style: TextStyle(color: white, fontSize: 16),),
+          ),
+        ),
+        SizedBox(height: 2,),
+        Text(sub, style: TextStyle(color: subtitle, fontSize: 14),),
+      ],
+    );
+  }
+
+}
+
+class Announcements extends StatefulWidget {
+  @override
+  _AnnouncementsState createState() => _AnnouncementsState();
+}
+
+class _AnnouncementsState extends State<Announcements> {
+
+  GlobalKey<CustomTabBarViewState> tabViewKey;
+
+  @override
+  void initState() {
+    super.initState();
+    tabViewKey = GlobalKey<CustomTabBarViewState>();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoPageScaffold(
+      child: CustomScrollView(
+        slivers: [
+          SliverNavigationBar("Announcements"),
+        ],
+      ),
+    );
+  }
+
 }
