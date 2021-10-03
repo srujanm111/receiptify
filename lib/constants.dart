@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:receiptify/data_classes.dart';
+import 'package:receiptify/singletons.dart';
 
 const String baseURL = "https://qrcoder-server.herokuapp.com/";
 
@@ -27,6 +28,7 @@ class RightArrow {
   static const IconData right_arrow = IconData(0xe800, fontFamily: _kFontFam, fontPackage: _kFontPkg);
 }
 
+final ReceiptManager receiptManager = ReceiptManager();
 final mockReceipts = [
   Receipt(
     dateIssued: "10/01/2021",

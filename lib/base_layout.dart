@@ -49,18 +49,21 @@ class _BaseLayoutState extends State<BaseLayout> {
 
 }
 
-class CustomerLayout extends StatelessWidget {
-
+class CustomerLayout extends StatefulWidget {
+  CustomerLayout({this.controller, this.onTap, this.keys});
   final CupertinoTabController controller;
   final Function(int) onTap;
   final List<GlobalKey<NavigatorState>> keys;
 
-  CustomerLayout({this.controller, this.onTap, this.keys});
+  State<CustomerLayout> createState() => _CustomerLayout();
+}
+
+class _CustomerLayout extends State<CustomerLayout> {
 
   @override
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(
-      controller: controller,
+      controller: widget.controller,
       tabBar: CupertinoTabBar(
         items: [
           BottomNavigationBarItem(
@@ -73,11 +76,11 @@ class CustomerLayout extends StatelessWidget {
             icon: NavIcon("Businesses", "business"),
           ),
         ],
-        onTap: onTap,
+        onTap: widget.onTap,
       ),
       tabBuilder: (context, i) {
         return CupertinoTabView(
-          navigatorKey: keys[i],
+          navigatorKey: widget.keys[i],
           builder: (context) {
             return _getView(i);
           },
@@ -89,7 +92,8 @@ class CustomerLayout extends StatelessWidget {
   Widget _getView(int index) {
     switch (index) {
       case 0:
-        return Receipts(mockReceipts);
+        print('Current Receipts: '+ receiptManager.currentReceipts.length.toString());
+        return Receipts(receiptManager.currentReceipts);
       case 1:
         return ScanReceipt();
       case 2:

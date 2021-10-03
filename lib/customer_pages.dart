@@ -332,11 +332,12 @@ class _ScanReceipt extends State<ScanReceipt> {
     controller.scannedDataStream.listen((scanData) {
       setState(() {
         result = scanData;
-        controller.stopCamera();
+        controller.pauseCamera();
         Future.delayed(Duration.zero, () =>
             _queryServer(result.code).then((response) {
-              var data = _parseData(response);
-              //send data to receipt
+              var receipt = _parseData(response);
+              print('Name ' + receipt.businessName);
+              receiptManager.addReceipt(receipt);
             }));
       });
     });
@@ -351,9 +352,12 @@ class _ScanReceipt extends State<ScanReceipt> {
   Future<http.Response> _queryServer(String hash) async {
     final prefs = await SharedPreferences.getInstance();
     String name = prefs.getString('name');
+    String email = prefs.getString('email');
 
-    var url = Uri.parse(baseURL + '/retrieveHash');
-    return await http.post(
+    print('Retrieving new ' + hash);
+
+    var url = Uri.parse(baseURL + 'retrieveHash');
+    var response = await http.post(
         url,
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
@@ -361,14 +365,18 @@ class _ScanReceipt extends State<ScanReceipt> {
         body: jsonEncode(<String, String>{
           'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
           'hashCode': hash,
-          'name': name ?? 'ERROR'
+          'name': name ?? 'ERROR',
+          'email': email
         })
     );
+
+    print('Response from server: ' + response.body);
+    return response;
   }
 
-  dynamic _parseData(response) {
+  Receipt _parseData(response) {
     var data = jsonDecode(response.body);
-    return data['data'];
+    return Receipt.fromJson(data);
   }
 
 }

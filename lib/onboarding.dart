@@ -200,6 +200,7 @@ class Header extends StatelessWidget {
 class CustomerOnboarding extends StatelessWidget {
 
   final nameController = TextFieldController();
+  final emailController = TextFieldController();
 
   @override
   Widget build(BuildContext context) {
@@ -230,6 +231,8 @@ class CustomerOnboarding extends StatelessWidget {
             Header("Say bye to all those\npaper receipts!"),
             SizedBox(height: 50,),
             _nameField(),
+            SizedBox(height: 50,),
+            _emailField(),
             Spacer(),
             LargeButton(title: "Continue", onPress: () => {
               _createUser().then((response) =>
@@ -249,11 +252,20 @@ class CustomerOnboarding extends StatelessWidget {
     );
   }
 
+  //TODO: Validate email (probably w/ regex)
+  Widget _emailField() {
+    return LargeTextField(
+      controller: emailController,
+      placeholder: "Email",
+    );
+  }
+
   Future<http.Response> _createUser() async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('name', nameController.text);
+    prefs.setString('email', emailController.text);
 
-    var url = Uri.parse(baseURL + '/createNewUser');
+    var url = Uri.parse(baseURL + 'createNewUser');
     return await http.post(
         url,
         headers: <String, String>{
@@ -261,7 +273,8 @@ class CustomerOnboarding extends StatelessWidget {
         },
         body: jsonEncode(<String, String> {
           'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
-          'name': nameController.text
+          'name': nameController.text,
+          'email': emailController.text
         })
     );
   }
@@ -360,7 +373,7 @@ class BusinessOnboarding extends StatelessWidget {
   }
 
   Future<http.Response> _createBusiness() async {
-    var url = Uri.parse(baseURL + '/createNewBusiness');
+    var url = Uri.parse(baseURL + 'createNewBusiness');
     return await http.post(
         url,
         headers: <String, String>{
