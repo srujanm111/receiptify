@@ -779,6 +779,7 @@ class _SubscriptionsPageState extends State<SubscriptionsPage> {
                   body: jsonEncode(<String, String> {
                     'securityCode': securityCode,
                     'name': Receiptify.instance.customer.name,
+                    'subscription': subscription.businessName
                   }),
                 );
               },
