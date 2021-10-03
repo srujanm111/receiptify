@@ -651,11 +651,13 @@ class Announcements extends StatefulWidget {
 class _AnnouncementsState extends State<Announcements> {
 
   GlobalKey<CustomTabBarViewState> tabViewKey;
+  Future<List<Message>> messagesFuture;
 
   @override
   void initState() {
     super.initState();
     tabViewKey = GlobalKey<CustomTabBarViewState>();
+    messagesFuture = _getAllMessages();
   }
 
   @override
@@ -663,11 +665,117 @@ class _AnnouncementsState extends State<Announcements> {
     return CupertinoPageScaffold(
       child: CustomScrollView(
         slivers: [
-          SliverNavigationBar("Announcements"),
+          SliverNavigationBar("Announcements", onRefresh: () {
+            setState(() {
+              messagesFuture = _getAllMessages();
+            });
+          },),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: _body(),
+          ),
         ],
       ),
     );
   }
 
+  Widget _body() {
+    return Padding(
+      padding: const EdgeInsets.all(edge_padding),
+      child: FutureBuilder<List<Message>>(
+        future: messagesFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(green)));
+          } else if (snapshot.hasData) {
+            return Column(
+              children: verticalSpace(card_spacing, [
+                RoundCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(horizontal_margin),
+                    child: RoundButton(
+                      height: 45,
+                      text: "Create Announcement",
+                      onPress: () async {
+                        await _createAnnouncement();
+                      },
+                    ),
+                  ),
+                ),
+                ...snapshot.data.map((message) => _announcement(message)).toList(),
+              ]),
+            );
+          } else {
+            return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(green)));
+          }
+        },
+      ),
+    );
+  }
 
+  Future<List<Message>> _getAllMessages() async {
+    // TODO api request to get messages json, then parse into Message objects
+  }
+
+  Future _createAnnouncement() async {
+    final messageString = await showCustomDialog<String>(context, CustomDialog("Create Announcement", CreateAnnouncement()));
+    // TODO post message
+  }
+
+  Widget _announcement(Message message) {
+    return RoundCard(
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(message.businessName, style: TextStyle(color: title, fontSize: 20)),
+              Text(message.date, style: TextStyle(color: subtitle, fontSize: 15)),
+            ],
+          ),
+          SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 50,
+                width: 100,
+                decoration: BoxDecoration(
+                  color: green,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              Text(message.text, style: TextStyle(color: title, fontSize: 14), textAlign: TextAlign.left,),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+}
+
+class CreateAnnouncement extends StatelessWidget {
+
+  final DialogTextController messageController;
+
+  CreateAnnouncement() : messageController = DialogTextController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        DialogTextField(
+          controller: messageController,
+          placeholder: "Expiration",
+        ),
+        SizedBox(height: item_spacing),
+        RoundButton(
+          text: "Done",
+          height: 45,
+          onPress: () => Navigator.of(context).pop(messageController.text),
+        )
+      ],
+    );
+  }
 }

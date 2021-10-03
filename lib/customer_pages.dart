@@ -495,202 +495,11 @@ class Businesses extends StatefulWidget {
 class _BusinessesState extends State<Businesses> {
 
   GlobalKey<CustomTabBarViewState> tabViewKey;
-  bool isSubscription = false;
-  List<String> subscribedBusinesses = [];
-  List<String> unsubscribedBusinesses = [];
 
   @override
   void initState() {
     super.initState();
     tabViewKey = GlobalKey<CustomTabBarViewState>();
-    subscribedBusinesses = [];
-    unsubscribedBusinesses = [];
-    isSubscription = false;
-    _getSubscriptions().then((ls) {
-      buildSubscriptions(ls);
-    });
-  }
-
-  void buildSubscriptions(List<Map<String, bool>> ls) {
-    setState(() {
-      print('vroom');
-      ls.forEach((entry) {
-        String bus = entry.keys.first;
-        print(bus);
-        bool subbed = entry[entry.keys.first];
-        if (subbed && !subscribedBusinesses.contains(bus)) {
-          subscribedBusinesses.add(bus);
-        } else if (!subbed && !unsubscribedBusinesses.contains(bus)) {
-          unsubscribedBusinesses.add(bus);
-        }
-        print(subscribedBusinesses);
-        print(unsubscribedBusinesses);
-      });
-    });
-  }
-
-  Widget _initAnnouncements() {
-    return Container(
-      child: SafeArea(
-        child: Center(
-          child: Icon(Icons.mail)
-        )
-      )
-    );
-  }
-
-  Widget _initSubscriptions() {
-    return Container(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 0),
-        child: ListView.separated (
-            itemCount: subscribedBusinesses.length + unsubscribedBusinesses.length,
-            separatorBuilder: (BuildContext context, int index) => const Spacer(),
-            itemBuilder: ( (context, index) {
-              return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
-                  child: RoundCard(
-                      height: 100,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 0),
-                          child: Stack (
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                  color: white,
-                                  borderRadius: BorderRadius.circular(25)
-                              ),
-                            ),
-                            Column (
-                                children:[
-                                  Center(
-                                    child: index < subscribedBusinesses.length?
-                                    Text(subscribedBusinesses[index],
-                                        style: TextStyle(
-                                            color: title,
-                                            fontSize: 20
-                                        )
-                                    ) :
-                                    Text(unsubscribedBusinesses[index - subscribedBusinesses.length],
-                                      style: TextStyle(
-                                          color: title,
-                                          fontSize: 20
-                                      ),
-                                    ),
-                                  ),
-                                  CupertinoButton(
-                                      onPressed: index < subscribedBusinesses.length?() =>
-    showCustomDialog<String>(context,
-    CustomDialog("Already subscribed to " + subscribedBusinesses[index] + "!", Icon(Icons.check)))  : () {
-                                        String name = unsubscribedBusinesses[index - subscribedBusinesses.length];
-                                        subscribeToBusiness(name).then((response) {
-                                          var jsonBody = jsonDecode(response.body);
-                                          if(jsonBody['success']) {
-                                            showCustomDialog<String>(context,
-                                                CustomDialog("Subscribed to $name!", Icon(Icons.check))).then((val) {
-                                              _getSubscriptions().then((value) =>
-                                                  setState(() => buildSubscriptions(value)));
-                                            });
-                                          }
-                                        });
-                                      },
-                                  child : RoundCard(
-                                    height: 40,
-                                    width: 300,
-                                    child: Stack(
-                                      children: [
-                                        Container(
-                                          decoration: BoxDecoration(
-                                              color: index < subscribedBusinesses.length?white:green,
-                                              border: Border.all(
-                                                color: green,
-                                                width: 6
-                                              ),
-                                              borderRadius: BorderRadius.circular(10)
-                                          ),
-                                        ),
-                                        index < subscribedBusinesses.length?
-                                        Center(
-                                          child: Text('Subscribed',
-                                            style: TextStyle(
-                                                color: title,
-                                                fontSize: 18
-                                            ),
-                                          ),
-                                        )
-                                           :
-                                        Center(
-                                          child:  Text('Subscribe',
-                                                style: TextStyle(
-                                                    color: white,
-                                                    fontSize: 18
-                                                )
-                                            ),
-                                          ),
-                                      ],
-                                    )
-                                  ))
-                                ])
-                          ])
-                      )
-                  )
-              );
-            }))
-      )
-    );
-  }
-
-  Future<List<Map<String,bool>>> _getSubscriptions() async{
-    subscribedBusinesses = [];
-    unsubscribedBusinesses = [];
-
-    var url = getAPI(baseURL, 'getSubscriptions');
-    var response = await http.post(
-      url,
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String> {
-        'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
-        'name': Receiptify.instance.customer.name,
-      }),
-    );
-
-    var url2 = getAPI(baseURL, 'getBusinessList');
-    var response2 = await http.post(
-      url2,
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String> {
-        'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
-        'name': Receiptify.instance.customer.name,
-      }),
-    );
-
-    var jsonData = jsonDecode(response.body);
-    var jsonData2 = jsonDecode(response2.body);
-    List<Map<String,bool>> ret = [];
-    Set<String> subbedSet = <String>{};
-    print(jsonData);
-    print(jsonData2);
-    if(jsonData['success']) {
-      (List<String>.from(jsonData['subscriptions'])).forEach((element) {
-          ret.add({element: true});
-          subbedSet.add(element);
-      });
-    }
-    print(subbedSet);
-    if(jsonData2['success']) {
-      (List<String>.from(jsonData2['businessList'])).forEach((element) {
-        if(!subbedSet.contains(element)) {
-          print('Not Subbed To ' + element);
-          ret.add({element: false});
-        }
-      });
-    }
-
-    return ret;
   }
 
   @override
@@ -713,8 +522,8 @@ class _BusinessesState extends State<Businesses> {
             key: tabViewKey,
             useChildDirectly: true,
             tabs: [
-              SliverFillRemaining(hasScrollBody: true, child: _initAnnouncements()),
-              SliverFillRemaining(hasScrollBody: true, child: _initSubscriptions()),
+              SliverFillRemaining(hasScrollBody: true, child: AnnouncementsPage()),
+              SliverFillRemaining(hasScrollBody: true, child: SubscriptionsPage()),
             ],
           ),
         ],
@@ -724,7 +533,229 @@ class _BusinessesState extends State<Businesses> {
 
   void changePage(int page) {
     tabViewKey.currentState.changePage(page);
-    setState( () => isSubscription = !isSubscription);
   }
 
 }
+
+class AnnouncementsPage extends StatefulWidget {
+  @override
+  _AnnouncementsPageState createState() => _AnnouncementsPageState();
+}
+
+class _AnnouncementsPageState extends State<AnnouncementsPage> {
+
+  Future<List<Message>> announcementsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    announcementsFuture = _getAllMessages();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(edge_padding),
+      child: FutureBuilder<List<Message>>(
+        future: announcementsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(green)));
+          } else if (snapshot.hasData) {
+            return Column(
+              children: verticalSpace(card_spacing, [
+                RoundCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(horizontal_margin),
+                    child: RoundButton(
+                      height: 45,
+                      text: "Refresh",
+                      onPress: () async {
+                        setState(() {
+                          announcementsFuture = _getAllMessages();
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                ...snapshot.data.map((message) => _announcement(message)).toList(),
+              ]),
+            );
+          } else {
+            return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(green)));
+          }
+        },
+      ),
+    );
+  }
+
+  Future<List<Message>> _getAllMessages() async {
+    // TODO api request to get messages json, then parse into Message objects
+  }
+
+  Widget _announcement(Message message) {
+    return RoundCard(
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(message.businessName, style: TextStyle(color: title, fontSize: 20)),
+              Text(message.date, style: TextStyle(color: subtitle, fontSize: 15)),
+            ],
+          ),
+          SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 50,
+                width: 100,
+                decoration: BoxDecoration(
+                  color: green,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              Text(message.text, style: TextStyle(color: title, fontSize: 14), textAlign: TextAlign.left,),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+}
+
+class SubscriptionsPage extends StatefulWidget {
+
+  @override
+  _SubscriptionsPageState createState() => _SubscriptionsPageState();
+}
+
+class _SubscriptionsPageState extends State<SubscriptionsPage> {
+
+  Future<List<BusinessSubscription>> subscriptionsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    subscriptionsFuture = _getAllSubscriptions();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(edge_padding),
+      child: FutureBuilder<List<BusinessSubscription>>(
+        future: subscriptionsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(green)));
+          } else if (snapshot.hasData) {
+            return Column(
+              children: verticalSpace(card_spacing, [
+                RoundCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(horizontal_margin),
+                    child: RoundButton(
+                      height: 45,
+                      text: "Refresh",
+                      onPress: () async {
+                        setState(() {
+                          subscriptionsFuture = _getAllSubscriptions();
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                ...snapshot.data.map((sub) => _businessCard(sub)).toList(),
+              ]),
+            );
+          } else {
+            return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(green)));
+          }
+        },
+      ),
+    );
+  }
+
+  Future<List<BusinessSubscription>> _getAllSubscriptions() async {
+    var url = getAPI(baseURL, 'getSubscriptions');
+    var response = await http.post(
+      url,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String> {
+        'securityCode': securityCode,
+        'name': Receiptify.instance.customer.name,
+      }),
+    );
+
+    var url2 = getAPI(baseURL, 'getBusinessList');
+    var response2 = await http.post(
+      url2,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String> {
+        'securityCode': securityCode,
+        'name': Receiptify.instance.customer.name,
+      }),
+    );
+
+    var jsonData = jsonDecode(response.body);
+    var jsonData2 = jsonDecode(response2.body);
+    List<BusinessSubscription> subs = [];
+    Set<String> subbedSet = <String>{};
+
+    if(jsonData['success']) {
+      (List<String>.from(jsonData['subscriptions'])).forEach((element) {
+        subbedSet.add(element);
+        subs.add(BusinessSubscription(true, element));
+      });
+    }
+    print(subbedSet);
+    if(jsonData2['success']) {
+      (List<String>.from(jsonData2['businessList'])).forEach((element) {
+        if(!subbedSet.contains(element)) {
+          subs.add(BusinessSubscription(false, element));
+        }
+      });
+    }
+
+    return subs;
+  }
+
+  Widget _businessCard(BusinessSubscription subscription) {
+    return RoundCard(
+      child: Column(
+        children: [
+          Text(subscription.businessName, style: TextStyle(color: title, fontSize: 20)),
+          SizedBox(height: 15),
+          subscription.isSubscribed ? Container(
+            height: 45,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: green,
+                width: 5,
+              ),
+            ),
+            child: Text(
+              "Subscribed",
+              style: TextStyle(color: title, fontSize: 20),
+            ),
+          ) : RoundButton(
+            text: "Subscribe",
+            onPress: () {
+              // TODO subscribe
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+}
+

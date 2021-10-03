@@ -157,3 +157,11 @@ class Message {
   }
 
 }
+
+class BusinessSubscription {
+
+  bool isSubscribed;
+  String businessName;
+
+  BusinessSubscription(this.isSubscribed, this.businessName);
+}
