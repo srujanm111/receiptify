@@ -82,8 +82,8 @@ class _ReceiptsState extends State<Receipts> {
           'hashCode': hash,
         }),
       );
-      var json = jsonDecode(response.body);
-      var receipt = Receipt.fromJson(json);
+      var map = jsonDecode(response.body);
+      var receipt = Receipt.fromJson(map["data"]);
       receipt.hash = hash;
       receipts.add(receipt);
     }
@@ -130,7 +130,7 @@ class _ReceiptsState extends State<Receipts> {
                         ),
                         child: Padding(
                           padding: EdgeInsets.all(10),
-                          child: Text("\$${receipt.total}", style: TextStyle(color: white, fontSize: 16),),
+                          child: Text("\$${receipt.total.toStringAsFixed(2)}", style: TextStyle(color: white, fontSize: 16),),
                         ),
                       )
                     ],
@@ -414,10 +414,10 @@ class _ScanReceipt extends State<CustomerScanReceipt> {
             showCustomDialog(context, CustomDialog("Receipt Added!", Builder(
               builder: (context) => Column(
                 children: [
-                  Text("Thank you for shopping at ${receipt.businessName}", style: TextStyle(color: green, fontSize: 18,), textAlign: TextAlign.center,),
+                  Text("Thank you for shopping at ${receipt.businessName}!", style: TextStyle(color: green, fontSize: 18,), textAlign: TextAlign.center,),
                   SizedBox(height: 20),
                   RoundButton(
-                    text: "View",
+                    text: "See Receipt",
                     height: 45,
                     onPress: () => Navigator.of(context).pop(),
                   )
@@ -425,7 +425,10 @@ class _ScanReceipt extends State<CustomerScanReceipt> {
               ),
             ))).whenComplete(() {
               push(ReceiptView(receipt), context);
-              controller.resumeCamera();
+              if (!foundation.kIsWeb) {
+                controller.resumeCamera();
+              }
+              result = null;
             });
 
           });
