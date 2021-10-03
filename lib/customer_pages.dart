@@ -590,36 +590,52 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
   }
 
   Future<List<Message>> _getAllMessages() async {
-    // TODO api request to get messages json, then parse into Message objects
+    var url = getAPI(baseURL, 'retrieveMessages');
+    var response = await http.post(
+      url,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String> {
+        'securityCode': securityCode,
+        'name': Receiptify.instance.customer.name,
+      }),
+    );
+
+    var json = jsonDecode(response.body);
+    (json['messageData'] as List<Map<String, dynamic>>).map((e) => null);
   }
 
   Widget _announcement(Message message) {
     return RoundCard(
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(message.businessName, style: TextStyle(color: title, fontSize: 20)),
-              Text(message.date, style: TextStyle(color: subtitle, fontSize: 15)),
-            ],
-          ),
-          SizedBox(height: 10),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: 50,
-                width: 100,
-                decoration: BoxDecoration(
-                  color: green,
-                  borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: vertical_margin, horizontal: horizontal_margin),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(message.businessName, style: TextStyle(color: title, fontSize: 20)),
+                Text(message.date, style: TextStyle(color: subtitle, fontSize: 15)),
+              ],
+            ),
+            SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 50,
+                  width: 100,
+                  decoration: BoxDecoration(
+                    color: green,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
-              ),
-              Text(message.text, style: TextStyle(color: title, fontSize: 14), textAlign: TextAlign.left,),
-            ],
-          )
-        ],
+                Text(message.text, style: TextStyle(color: title, fontSize: 14), textAlign: TextAlign.left,),
+              ],
+            )
+          ],
+        ),
       ),
     );
   }
@@ -668,7 +684,7 @@ class _SubscriptionsPageState extends State<SubscriptionsPage> {
                     ),
                   ),
                 ),
-                ...snapshot.data.map((sub) => _businessCard(sub)).toList(),
+                ...snapshot.data.map((sub) => sub!=null?_businessCard(sub):'').toList(),
               ]),
             );
           } else {
@@ -729,33 +745,48 @@ class _SubscriptionsPageState extends State<SubscriptionsPage> {
 
   Widget _businessCard(BusinessSubscription subscription) {
     return RoundCard(
-      child: Column(
-        children: [
-          Text(subscription.businessName, style: TextStyle(color: title, fontSize: 20)),
-          SizedBox(height: 15),
-          subscription.isSubscribed ? Container(
-            height: 45,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: green,
-                width: 5,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: vertical_margin, horizontal: horizontal_margin),
+        child: Column(
+          children: [
+            Text(subscription.businessName ?? 'ERROR', style: TextStyle(color: title, fontSize: 20)),
+            SizedBox(height: 15),
+            subscription.isSubscribed ? Container(
+              height: 45,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: green,
+                  width: 5,
+                ),
               ),
+              child: Center(
+                child: Text(
+                  "Subscribed",
+                  style: TextStyle(color: title, fontSize: 20),
+                ),
+              ),
+            ) : RoundButton(
+              text: "Subscribe",
+              height: 45,
+              onPress: () {
+                var url = getAPI(baseURL, 'addSubscription');
+                http.post(
+                  url,
+                  headers: <String, String>{
+                    'Content-Type': 'application/json; charset=UTF-8',
+                  },
+                  body: jsonEncode(<String, String> {
+                    'securityCode': securityCode,
+                    'name': Receiptify.instance.customer.name,
+                  }),
+                );
+              },
             ),
-            child: Text(
-              "Subscribed",
-              style: TextStyle(color: title, fontSize: 20),
-            ),
-          ) : RoundButton(
-            text: "Subscribe",
-            onPress: () {
-              // TODO subscribe
-            },
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
 }
-

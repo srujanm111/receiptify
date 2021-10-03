@@ -714,12 +714,44 @@ class _AnnouncementsState extends State<Announcements> {
   }
 
   Future<List<Message>> _getAllMessages() async {
-    // TODO api request to get messages json, then parse into Message objects
+    var url = getAPI(baseURL, 'allMessageSent');
+    var response = await http.post(
+      url,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String> {
+        'securityCode': securityCode,
+        'businessName': Receiptify.instance.business.name,
+      }),
+    );
+
+    var json = jsonDecode(response.body);
+    return (json['messageData'] as List<Map<String, dynamic>>).map<Message>((e) => Message.fromJson(e)).toList();
   }
 
   Future _createAnnouncement() async {
     final messageString = await showCustomDialog<String>(context, CustomDialog("Create Announcement", CreateAnnouncement()));
-    // TODO post message
+
+    var date = DateTime.now();
+    String dateStr = zeroPad(date.month, 2) + '/' + zeroPad(date.day, 2) + '/' + date.year.toString();
+
+    var url = getAPI(baseURL, 'createMessage');
+    http.post(
+      url,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, dynamic> {
+        'securityCode': securityCode,
+        'businessName': Receiptify.instance.business.name,
+        'message': {
+          'text': messageString,
+          'date': dateStr,
+          'businessName': Receiptify.instance.business.name
+        }
+      }),
+    );
   }
 
   Widget _announcement(Message message) {
@@ -767,7 +799,7 @@ class CreateAnnouncement extends StatelessWidget {
       children: [
         DialogTextField(
           controller: messageController,
-          placeholder: "Expiration",
+          placeholder: "Message",
         ),
         SizedBox(height: item_spacing),
         RoundButton(
