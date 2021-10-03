@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:receiptify/constants.dart';
+import 'package:receiptify/create_qrcode.dart';
 import 'package:receiptify/data_classes.dart';
 import 'package:receiptify/functions.dart';
 import 'package:receiptify/main.dart';
@@ -28,14 +30,63 @@ class _ReceiptsState extends State<Receipts> {
             hasScrollBody: false,
             child: Padding(
               padding: const EdgeInsets.all(edge_padding),
-              child: Column(
-                children: verticalSpace(card_spacing, mockReceipts.map((r) => _receiptCard(r)).toList()),
+              child: FutureBuilder<List<Receipt>>(
+                future: _getReceipts(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return Column(
+                      children: verticalSpace(card_spacing, snapshot.data.map((r) => _receiptCard(r)).toList()),
+                    );
+                  } else {
+                    return Column(
+                      children: [
+                        CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(green)),
+                      ],
+                    );
+                  }
+                },
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<List<Receipt>> _getReceipts() async {
+    var url = Uri.parse(baseURL + 'retrieveReceipts');
+    var response = await http.post(
+      url,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String> {
+        'securityCode': securityCode,
+        'name': Receiptify.instance.customer.name,
+      }),
+    );
+    var json = jsonDecode(response.body);
+    List<dynamic> hashes = json["allReceipts"];
+    List<Receipt> receipts = [];
+    for (String hash in hashes) {
+      var url = Uri.parse(baseURL + 'retrieveHash');
+      var response = await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String> {
+          'securityCode': securityCode,
+          'name': Receiptify.instance.customer.name,
+          'hashCode': hash,
+        }),
+      );
+      var json = jsonDecode(response.body);
+      var receipt = Receipt.fromJson(json);
+      receipt.hash = hash;
+      receipts.add(receipt);
+    }
+    return receipts;
   }
 
   Widget _receiptCard(Receipt receipt) {
@@ -214,7 +265,7 @@ class ReceiptView extends StatelessWidget {
                           RoundButton(
                             height: 45,
                             text: "Present Receipt",
-                            onPress: () => showCustomDialog<String>(context, CustomDialog("Receipt", ShowReceipt("RECEIPT HASH"))),
+                            onPress: () => showCustomDialog<String>(context, CustomDialog("Receipt", ShowQRCode(receipt.hash))),
                           ),
                           Padding(
                             padding: const EdgeInsets.only(right: 10),
@@ -252,7 +303,7 @@ class ReceiptView extends StatelessWidget {
                       RoundButton(
                         height: 45,
                         text: "Present Coupon",
-                        onPress: () => showCustomDialog<String>(context, CustomDialog("Coupon", ShowReceipt("RECEIPT HASH"))),
+                        onPress: () => showCustomDialog<String>(context, CustomDialog("Coupon", ShowQRCode(receipt.hash))),
                       ),
                       Padding(
                         padding: const EdgeInsets.only(right: 10),
@@ -292,28 +343,6 @@ class ReceiptView extends StatelessWidget {
         ),
         SizedBox(height: 2,),
         Text(sub, style: TextStyle(color: subtitle, fontSize: 14),),
-      ],
-    );
-  }
-
-}
-
-class ShowReceipt extends StatelessWidget {
-
-  final String hash;
-
-  ShowReceipt(this.hash);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // TODO Insert QR Code here
-        RoundButton(
-          text: "Done",
-          height: 45,
-          onPress: () => Navigator.of(context).pop(),
-        )
       ],
     );
   }
@@ -374,15 +403,14 @@ class _ScanReceipt extends State<CustomerScanReceipt> {
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
+      controller.stopCamera();
       setState(() {
         result = scanData;
-        controller.stopCamera();
-        _queryServer(result.code).then((response) {
-          final receipt = _parseData(response);
-
+        _getReceipt(result.code).then((receipt) {
           showCustomDialog(context, CustomDialog("Receipt Added!", Column(
             children: [
-              Text("Thank you for shopping at ${receipt.businessName}", style: TextStyle(color: title, fontSize: 20)),
+              Text("Thank you for shopping at ${receipt.businessName}", style: TextStyle(color: green, fontSize: 18,), textAlign: TextAlign.center,),
+              SizedBox(height: 10),
               RoundButton(
                 text: "Done",
                 height: 45,
@@ -401,24 +429,23 @@ class _ScanReceipt extends State<CustomerScanReceipt> {
     super.dispose();
   }
 
-  Future _queryServer(String hash) async {
-    var url = Uri.parse(baseURL + '/retrieveHash');
-    return await http.post(
-        url,
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String> {
-          'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
-          'hashCode': hash,
-          'name': Receiptify.instance.customer.name ?? 'ERROR'
-        })
+  Future<Receipt> _getReceipt(String hash) async {
+    var url = Uri.parse(baseURL + 'retrieveHash');
+    var response = await http.post(
+      url,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String> {
+        'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
+        'hashCode': hash,
+        'name': Receiptify.instance.customer.name,
+      }),
     );
-  }
-
-  Receipt _parseData(response) {
     final json = jsonDecode(response.body);
-    return Receipt.fromJson(json);
+    var receipt = Receipt.fromJson(json["data"]);
+    receipt.hash = hash;
+    return receipt;
   }
 
 }

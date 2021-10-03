@@ -1,18 +1,24 @@
 import 'package:flutter/cupertino.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:receiptify/widgets.dart';
 
-class ShowQrCode extends StatelessWidget {
+class ShowQRCode extends StatelessWidget {
 
   final String hash;
 
-  ShowQrCode(this.hash);
+  ShowQRCode(this.hash);
 
   @override
   Widget build(BuildContext context) {
-    // TODO generate QR code from hash
     return Column(
       children: [
-        // Generated QR Code here
+        Padding(
+          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
+          child: QrImage(
+            data: hash,
+            version: QrVersions.auto,
+          ),
+        ),
         RoundButton(
           text: "Done",
           height: 45,

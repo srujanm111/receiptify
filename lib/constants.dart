@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:receiptify/data_classes.dart';
 
 const String baseURL = "https://qrcoder-server.herokuapp.com/";
+final String securityCode = "A3D263103C27E77EF8B6267C051906C0";
 
 const double edge_padding = 15;
 const double card_spacing = 15;

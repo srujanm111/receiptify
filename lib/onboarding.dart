@@ -200,6 +200,7 @@ class Header extends StatelessWidget {
 class CustomerOnboarding extends StatelessWidget {
 
   final nameController = TextFieldController();
+  final emailController = TextFieldController();
 
   @override
   Widget build(BuildContext context) {
@@ -230,6 +231,8 @@ class CustomerOnboarding extends StatelessWidget {
             Header("Say bye to all those\npaper receipts!"),
             SizedBox(height: 50,),
             _nameField(),
+            SizedBox(height: 20,),
+            _emailField(),
             Spacer(),
             LargeButton(title: "Continue", onPress: () => {
               _createUser().then((response) =>
@@ -249,20 +252,28 @@ class CustomerOnboarding extends StatelessWidget {
     );
   }
 
+  Widget _emailField() {
+    return LargeTextField(
+      controller: emailController,
+      placeholder: "Email",
+    );
+  }
+
   Future<http.Response> _createUser() async {
     Receiptify.instance.isCustomer = true;
-    Receiptify.instance.customer = Customer(nameController.text);
+    Receiptify.instance.customer = Customer(nameController.text, emailController.text);
 
-    var url = Uri.parse(baseURL + '/createNewUser');
+    var url = Uri.parse(baseURL + 'createNewUser');
     return await http.post(
-        url,
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String> {
-          'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
-          'name': nameController.text
-        })
+      url,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String> {
+        'securityCode': 'A3D263103C27E77EF8B6267C051906C0',
+        'name': nameController.text,
+        'email': emailController.text
+      }),
     );
   }
 

@@ -164,8 +164,8 @@ class _CreateReceiptState extends State<CreateReceipt> {
                   order: productsOrdered,
                   coupons: couponsMade,
                 );
-                // TODO get hash for receipt
-                await showCustomDialog<String>(context, CustomDialog("Receipt", ShowQrCode("RECEIPT HASH")));
+                receipt.hash = await _getHashForReceipt(receipt);
+                await showCustomDialog<String>(context, CustomDialog("Receipt", ShowQRCode(receipt.hash)));
                 productsOrdered = [];
                 couponsMade = [];
                 setState(() {});
@@ -185,6 +185,21 @@ class _CreateReceiptState extends State<CreateReceipt> {
         ),
       ),
     );
+  }
+
+  Future<String> _getHashForReceipt(Receipt receipt) async {
+    var url = Uri.parse(baseURL + 'createHash');
+    var json = receipt.toJson();
+    json["securityCode"] = securityCode;
+    var response = await http.post(
+      url,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(json),
+    );
+    final map = jsonDecode(response.body);
+    return map["orderHash"];
   }
 
   Widget _productCard(Product product) {

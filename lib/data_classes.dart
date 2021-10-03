@@ -1,8 +1,9 @@
 class Customer {
 
   String name;
+  String email;
 
-  Customer(this.name);
+  Customer(this.name, this.email);
 
 }
 
@@ -19,6 +20,7 @@ class Business {
 
 class Receipt {
 
+  String hash;
   String dateIssued;
   String businessName;
   Address address;
@@ -41,8 +43,8 @@ class Receipt {
     phone = json["businessPhone"];
     subtotal = json["subtotal"];
     total = json["total"];
-    order = (json["order"] as List).map<Product>((map) => Product.fromJson(map)).toList();
-    coupons = (json["coupons"] as List).map<Coupon>((map) => Coupon.fromJson(map)).toList();
+    order = (json["orderInfo"] as List).map<Product>((map) => Product.fromJson(map)).toList();
+    coupons = (json["couponInfo"] as List).map<Coupon>((map) => Coupon.fromJson(map)).toList();
   }
 
   Map<String, dynamic> toJson() {
@@ -53,8 +55,8 @@ class Receipt {
     json["businessPhone"] = phone;
     json["subtotal"] = subtotal;
     json["total"] = total;
-    json["order"] = order.map<Map<String, dynamic>>((product) => product.toJson()).toList();
-    json["coupons"] = coupons.map<Map<String, dynamic>>((coupon) => coupon.toJson()).toList();
+    json["orderInfo"] = order.map<Map<String, dynamic>>((product) => product.toJson()).toList();
+    json["couponInfo"] = coupons.map<Map<String, dynamic>>((coupon) => coupon.toJson()).toList();
     return json;
   }
 
