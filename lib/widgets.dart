@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:receiptify/constants.dart';
 
 class ReceiptifyTitle extends StatelessWidget {
@@ -250,14 +251,15 @@ class _LargeTextFieldState extends State<LargeTextField> {
 class SliverNavigationBar extends StatelessWidget {
 
   final String title;
+  final VoidCallback onRefresh;
 
-  SliverNavigationBar(this.title);
+  SliverNavigationBar(this.title, {this.onRefresh});
 
   @override
   Widget build(BuildContext context) {
     double min = 44 + MediaQuery.of(context).padding.top;
     return SliverPersistentHeader(
-      delegate: SliverNavigationBarHeader(min, min + 52, title),
+      delegate: SliverNavigationBarHeader(min, min + 52, title, onRefresh),
       pinned: true,
     );
   }
@@ -268,8 +270,9 @@ class SliverNavigationBarHeader extends SliverPersistentHeaderDelegate {
   final String title;
   final double _minExtent;
   final double _maxExtent;
+  final VoidCallback onRefresh;
 
-  SliverNavigationBarHeader(this._minExtent, this._maxExtent, this.title);
+  SliverNavigationBarHeader(this._minExtent, this._maxExtent, this.title, this.onRefresh);
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
@@ -315,6 +318,15 @@ class SliverNavigationBarHeader extends SliverPersistentHeaderDelegate {
       backgroundColor: CupertinoTheme.of(context).primaryColor,
       border: null,
       brightness: Brightness.dark,
+      trailing: onRefresh != null ? Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: onRefresh,
+            child: Icon(Icons.refresh, color: white,),
+          ),
+        ],
+      ) : Container(),
     );
   }
 

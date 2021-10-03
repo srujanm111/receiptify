@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:receiptify/constants.dart';
 import 'package:receiptify/create_qrcode.dart';
 import 'package:receiptify/data_classes.dart';
@@ -21,29 +20,37 @@ class Receipts extends StatefulWidget {
 
 class _ReceiptsState extends State<Receipts> {
 
+  Future<List<Receipt>> future;
+
+  @override
+  void initState() {
+    super.initState();
+    future = _getReceipts();
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       child: CustomScrollView(
         slivers: [
-          SliverNavigationBar("Receipts"),
+          SliverNavigationBar("Receipts", onRefresh: () => setState(() {
+            future = _getReceipts();
+          }),),
           SliverFillRemaining(
             hasScrollBody: false,
             child: Padding(
               padding: const EdgeInsets.all(edge_padding),
               child: FutureBuilder<List<Receipt>>(
-                future: _getReceipts(),
+                future: future,
                 builder: (context, snapshot) {
-                  if (snapshot.hasData) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(green)));
+                  } else if (snapshot.hasData) {
                     return Column(
                       children: verticalSpace(card_spacing, snapshot.data.map((r) => _receiptCard(r)).toList()),
                     );
                   } else {
-                    return Column(
-                      children: [
-                        CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(green)),
-                      ],
-                    );
+                    return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(green)));
                   }
                 },
               ),

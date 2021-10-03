@@ -14,13 +14,11 @@ class BaseLayout extends StatefulWidget {
 class _BaseLayoutState extends State<BaseLayout> {
 
   int currentIndex = 0;
-  List<GlobalKey<NavigatorState>> keys;
   CupertinoTabController controller;
 
   @override
   void initState() {
     super.initState();
-    keys = List.generate(3, (index) => GlobalKey<NavigatorState>());
     controller = CupertinoTabController();
   }
 
@@ -29,18 +27,13 @@ class _BaseLayoutState extends State<BaseLayout> {
     return Receiptify.instance.isCustomer ? CustomerLayout(
       controller: controller,
       onTap: onTabPress,
-      keys: keys,
     ) : BusinessLayout(
       controller: controller,
       onTap: onTabPress,
-      keys: keys,
     );
   }
 
   void onTabPress(int index) {
-    if (currentIndex == index) {
-      keys[index].currentState?.popUntil((route) => route.isFirst);
-    }
     currentIndex = index;
   }
 
@@ -50,9 +43,8 @@ class CustomerLayout extends StatelessWidget {
 
   final CupertinoTabController controller;
   final Function(int) onTap;
-  final List<GlobalKey<NavigatorState>> keys;
 
-  CustomerLayout({this.controller, this.onTap, this.keys});
+  CustomerLayout({this.controller, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +66,6 @@ class CustomerLayout extends StatelessWidget {
       ),
       tabBuilder: (context, i) {
         return CupertinoTabView(
-          navigatorKey: keys[i],
           builder: (context) {
             return _getView(i);
           },
@@ -100,9 +91,8 @@ class BusinessLayout extends StatelessWidget {
 
   final CupertinoTabController controller;
   final Function(int) onTap;
-  final List<GlobalKey<NavigatorState>> keys;
 
-  BusinessLayout({this.controller, this.onTap, this.keys});
+  BusinessLayout({this.controller, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +114,6 @@ class BusinessLayout extends StatelessWidget {
       ),
       tabBuilder: (context, i) {
         return CupertinoTabView(
-          navigatorKey: keys[i],
           builder: (context) {
             return _getView(i);
           },
